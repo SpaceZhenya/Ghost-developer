@@ -19,7 +19,6 @@
     @keyframes pulse { 0%,100%{opacity:.4} 50%{opacity:1} }
     @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-    @keyframes spin { to { transform: rotate(360deg); } }
     .main { display: flex; flex: 1; overflow: hidden; }
     .activity { width: 48px; background: #333; display: flex; flex-direction: column; align-items: center; padding-top: 8px; gap: 4px; }
     .activity button { width: 36px; height: 36px; border: none; background: transparent; color: #858585; font-size: 18px; border-radius: 4px; cursor: pointer; }
@@ -29,21 +28,21 @@
     .activity .spacer { flex: 1; }
     .activity .gear { color: #858585; font-size: 14px; margin-bottom: 8px; }
     .sidebar { width: 240px; background: #252526; border-right: 1px solid #3c3c3c; display: flex; flex-direction: column; }
-    .sidebar-title { height: 36px; display: flex; align-items: center; padding: 0 16px; font-size: 11px; font-weight: 600; text-transform: uppercase; color: #858585; border-bottom: 1px solid #3c3c3c; letter-spacing: 0.5px; }
+    .sidebar-title { height: 36px; display: flex; align-items: center; padding: 0 16px; font-size: 11px; font-weight: 600; text-transform: uppercase; color: #858585; border-bottom: 1px solid #3c3c3c; letter-spacing: 0.5px; justify-content: space-between; }
     .sidebar-content { flex: 1; overflow-y: auto; padding: 8px 0; }
-    .file-item { display: flex; align-items: center; gap: 6px; padding: 4px 8px; cursor: pointer; font-size: 13px; color: #ccc; border-radius: 3px; margin: 0 8px; }
+    .file-item { display: flex; align-items: center; gap: 6px; padding: 3px 8px; cursor: pointer; font-size: 13px; color: #ccc; border-radius: 3px; margin: 0 8px; }
     .file-item:hover { background: #2a2d2e; }
     .file-item.active { background: #37373d; color: white; }
     .folder-arrow { font-size: 10px; width: 16px; }
     .indent-0 { padding-left: 8px; } .indent-1 { padding-left: 24px; } .indent-2 { padding-left: 40px; } .indent-3 { padding-left: 56px; }
     .editor-area { flex: 1; display: flex; flex-direction: column; min-width: 0; }
     .editor-tabs { display: flex; align-items: center; height: 36px; background: #252526; border-bottom: 1px solid #3c3c3c; padding: 0 4px; font-size: 12px; overflow-x: auto; }
-    .tab { padding: 0 16px; height: 100%; display: flex; align-items: center; border-right: 1px solid #3c3c3c; color: #858585; cursor: pointer; }
+    .tab { padding: 0 16px; height: 100%; display: flex; align-items: center; border-right: 1px solid #3c3c3c; color: #858585; cursor: pointer; white-space: nowrap; }
     .tab.active { background: #1e1e1e; color: white; border-bottom: 1px solid #1e1e1e; margin-bottom: -1px; }
+    .tab .close { margin-left: 8px; opacity: 0.5; font-size: 14px; }
+    .tab .close:hover { opacity: 1; }
     .editor { flex: 1; background: #1e1e1e; position: relative; overflow: hidden; }
-    .editor pre { padding: 16px; font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; font-size: 14px; line-height: 1.6; color: #d4d4d4; overflow: auto; height: 100%; }
-    .editor .line-num { color: #858585; display: inline-block; width: 32px; text-align: right; margin-right: 16px; user-select: none; }
-    .editor .kw { color: #569cd6; } .editor .fn { color: #dcdcaa; } .editor .str { color: #ce9178; } .editor .cm { color: #6a9955; } .editor .num { color: #b5cea8; } .editor .type { color: #4ec9b0; }
+    .editor textarea { width: 100%; height: 100%; background: #1e1e1e; color: #d4d4d4; border: none; outline: none; padding: 16px; font-family: 'Cascadia Code', Consolas, monospace; font-size: 14px; line-height: 1.6; resize: none; tab-size: 2; }
     .timeline { width: 280px; background: #1e1e1e; border-left: 1px solid #3c3c3c; display: flex; flex-direction: column; }
     .timeline-title { height: 36px; display: flex; align-items: center; padding: 0 16px; font-size: 11px; font-weight: 600; text-transform: uppercase; color: #858585; border-bottom: 1px solid #3c3c3c; }
     .timeline-progress { padding: 12px 16px; border-bottom: 1px solid #3c3c3c; }
@@ -59,8 +58,7 @@
     .tl-icon .spin-dot { width: 8px; height: 8px; border-radius: 50%; background: #4ec9b0; animation: pulse 2s ease-in-out infinite; display: block; }
     .tl-text { font-size: 12px; color: #ccc; }
     .tl-text.active { color: #4ec9b0; }
-    .tl-line { margin-left: 16px; border-left: 1px solid #3c3c3c; height: 8px; }
-    .terminal { height: 176px; background: #1e1e1e; border-top: 1px solid #3c3c3c; display: flex; flex-direction: column; }
+    .terminal { height: 160px; background: #1e1e1e; border-top: 1px solid #3c3c3c; display: flex; flex-direction: column; }
     .terminal-tabs { height: 32px; background: #252526; border-bottom: 1px solid #3c3c3c; display: flex; align-items: center; padding: 0 16px; gap: 12px; }
     .terminal-tab { font-size: 11px; color: #858585; cursor: pointer; }
     .terminal-tab.active { color: white; border-bottom: 2px solid #007acc; padding-bottom: 2px; }
@@ -74,65 +72,67 @@
     .input-row { display: flex; gap: 8px; max-width: 800px; margin: 0 auto; }
     .input-row input { flex: 1; padding: 10px 12px; border-radius: 8px; border: 1px solid #4c4c4c; background: #3c3c3c; color: #ccc; font-size: 13px; outline: none; }
     .input-row input:focus { border-color: #007acc; }
-    .input-row button { padding: 10px 24px; border-radius: 8px; border: none; background: #007acc; color: white; font-size: 13px; font-weight: 500; cursor: pointer; }
+    .input-row button { padding: 10px 24px; border-radius: 8px; border: none; background: #007acc; color: white; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.2s; }
     .input-row button:hover { background: #0098ff; }
+    .input-row button.stop { background: #c0392b; }
+    .input-row button.stop:hover { background: #e74c3c; }
+    .input-row button:disabled { opacity: 0.4; cursor: default; }
     .examples { display: flex; gap: 8px; max-width: 800px; margin: 8px auto 0; overflow-x: auto; padding-bottom: 4px; }
-    .examples button { font-size: 11px; padding: 4px 12px; border-radius: 12px; border: none; background: #333; color: #858585; cursor: pointer; white-space: nowrap; }
+    .examples button { font-size: 11px; padding: 4px 12px; border-radius: 12px; border: none; background: #333; color: #858585; cursor: pointer; white-space: nowrap; transition: color 0.2s, background 0.2s; }
     .examples button:hover { color: white; background: #3c3c3c; }
     .status { height: 24px; background: #007acc; display: flex; align-items: center; padding: 0 16px; font-size: 11px; color: white; }
     .status span { margin-right: 12px; }
     .status .sep { color: rgba(255,255,255,0.5); }
+    .new-file-btn { background: none; border: 1px dashed #555; color: #858585; padding: 4px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; margin: 4px 8px; width: calc(100% - 16px); }
+    .new-file-btn:hover { border-color: #007acc; color: #007acc; }
+    .file-del { margin-left: auto; opacity: 0; font-size: 14px; padding: 0 4px; cursor: pointer; }
+    .file-item:hover .file-del { opacity: 0.6; }
+    .file-item .file-del:hover { opacity: 1; color: #f44747; }
+    .welcome { display: flex; align-items: center; justify-content: center; height: 100%; flex-direction: column; gap: 16px; color: #858585; font-size: 14px; }
+    .welcome h2 { color: #ccc; font-size: 20px; font-weight: 400; }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <span class="dot green"></span>
+      <span class="dot green" id="statusDot"></span>
       <span class="brand">GHOST DEVELOPER</span>
       <span class="sep">|</span>
       <span class="label">Agent Status:</span>
-      <span class="val" id="agentStatus">Running</span>
+      <span class="val" id="agentStatus">Idle</span>
       <span class="sep">|</span>
       <span class="label">File:</span>
-      <span class="path" id="currentFile">src/pages/Login.tsx</span>
+      <span class="path" id="currentFile">—</span>
     </div>
     <div class="main">
       <div class="activity">
-        <button class="active" title="Explorer">📁</button>
-        <button title="Search">🔍</button>
-        <button title="Agent Timeline">📋</button>
+        <button class="active" id="actFiles" title="Explorer">📁</button>
+        <button id="actTimeline" title="Agent Timeline">📋</button>
         <div class="spacer"></div>
         <div class="gear">⚙️</div>
       </div>
-      <div class="sidebar">
-        <div class="sidebar-title">Explorer</div>
-        <div class="sidebar-content">
-          <div class="file-item indent-0 folder" onclick="toggleFolder(this)"><span class="folder-arrow">▼</span>📁 my-app</div>
-          <div class="file-item indent-1"><span class="folder-arrow" style="visibility:hidden">▶</span>📄 package.json</div>
-          <div class="file-item indent-1 folder" onclick="toggleFolder(this)"><span class="folder-arrow">▼</span>📁 src</div>
-          <div class="file-item indent-2 active" onclick="selectFile(this,'src/pages/Login.tsx')"><span class="folder-arrow" style="visibility:hidden">▶</span>📄 Login.tsx</div>
-          <div class="file-item indent-2" onclick="selectFile(this,'src/pages/Dashboard.tsx')"><span class="folder-arrow" style="visibility:hidden">▶</span>📄 Dashboard.tsx</div>
-          <div class="file-item indent-2" onclick="selectFile(this,'src/App.tsx')"><span class="folder-arrow" style="visibility:hidden">▶</span>📄 App.tsx</div>
-          <div class="file-item indent-1 folder" onclick="toggleFolder(this)"><span class="folder-arrow">▼</span>📁 lib</div>
-          <div class="file-item indent-2" onclick="selectFile(this,'src/lib/api.ts')"><span class="folder-arrow" style="visibility:hidden">▶</span>📄 api.ts</div>
+      <div class="sidebar" id="sidebar">
+        <div class="sidebar-title">
+          <span id="sidebarTitle">Explorer</span>
+          <button class="new-file-btn" id="newFileBtn" style="width:auto;padding:2px 8px;font-size:16px;border:none;margin:0" title="New file">+</button>
         </div>
+        <div class="sidebar-content" id="fileTree"></div>
       </div>
-      <div class="editor-area">
-        <div class="editor-tabs">
-          <div class="tab active">Login.tsx</div>
-          <div class="tab">Dashboard.tsx</div>
-          <div class="tab">App.tsx</div>
-        </div>
-        <div class="editor">
-          <pre id="editorContent"></pre>
+      <div class="editor-area" id="editorArea">
+        <div class="editor-tabs" id="editorTabs"></div>
+        <div class="editor" id="editorContainer">
+          <div class="welcome" id="welcomeScreen">
+            <h2>👻 Ghost Developer</h2>
+            <p>Create a file or type a task to begin</p>
+          </div>
         </div>
       </div>
       <div class="timeline" id="timelinePanel">
         <div class="timeline-title">Agent Activity</div>
         <div class="timeline-progress">
           <div class="timeline-stats">
-            <span id="stepCount">0/31 steps</span>
-            <span id="elapsed">0s elapsed</span>
+            <span id="stepCount">0 steps</span>
+            <span id="elapsed">0s</span>
           </div>
           <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
         </div>
@@ -142,26 +142,23 @@
     <div class="terminal">
       <div class="terminal-tabs">
         <span class="terminal-tab">PROBLEMS</span>
-        <span class="terminal-tab">OUTPUT</span>
         <span class="terminal-tab active">TERMINAL</span>
       </div>
       <div class="terminal-output" id="terminalOutput">
         <div class="terminal-line">Ghost Developer Terminal</div>
-        <div class="terminal-line">------------------------------</div>
-        <div class="terminal-line cmd">$ Ready. Starting demo...</div>
+        <div class="terminal-line">Type a task and press Run.</div>
       </div>
     </div>
     <div class="input-bar">
       <div class="input-row">
-        <input type="text" placeholder="Describe a coding task..." id="taskInput" disabled value="Building demo...">
-        <button id="actionBtn" disabled>Run</button>
+        <input type="text" placeholder="Describe a coding task..." id="taskInput">
+        <button id="actionBtn">Run</button>
       </div>
       <div class="examples">
-        <button>Create a login page</button>
-        <button>Fix authentication error</button>
-        <button>Add user dashboard</button>
-        <button>Implement API client</button>
-        <button>Add error handling</button>
+        <button onclick="runExample('Create a login page with email and password validation')">Login page</button>
+        <button onclick="runExample('Add a user dashboard with data table')">Dashboard</button>
+        <button onclick="runExample('Create an API client module')">API client</button>
+        <button onclick="runExample('Add error handling and logging')">Error handling</button>
       </div>
     </div>
     <div class="status">
@@ -169,269 +166,270 @@
       <span class="sep">|</span>
       <span>Progress: <span id="statusProgress">0</span>%</span>
       <span class="sep">|</span>
-      <span>Elapsed: <span id="statusElapsed">0</span>s</span>
-      <span id="fileStatus" class="sep" style="display:none">|</span>
-      <span id="filesModified" style="display:none"></span>
+      <span id="timeDisplay">Ready</span>
       <div style="flex:1"></div>
       <span id="statusFile"></span>
     </div>
   </div>
 
   <script>
-    const FILES = {
-      'src/pages/Login.tsx': [
-        'import { useState } from "react";',
-        'import { useNavigate } from "react-router-dom";',
-        '',
-        'export function LoginPage() {',
-        '  const [email, setEmail] = useState<string>("");',
-        '  const [password, setPassword] = useState<string>("");',
-        '  const navigate = useNavigate();',
-        '',
-        '  const handleSubmit = (e: React.FormEvent) => {',
-        '    e.preventDefault();',
-        '    navigate("/");',
-        '  };',
-        '',
-        '  return (',
-        '    <div className="min-h-screen flex items-center justify-center bg-gray-50">',
-        '      <form onSubmit={handleSubmit} className="p-8 bg-white rounded shadow-md w-96">',
-        '        <h1 className="text-2xl font-bold mb-6">Sign In</h1>',
-        '        <input type="email" placeholder="Email" value={email}',
-        '          onChange={(e) => setEmail(e.target.value)}',
-        '          className="w-full p-3 border rounded mb-4" />',
-        '        <input type="password" placeholder="Password" value={password}',
-        '          onChange={(e) => setPassword(e.target.value)}',
-        '          className="w-full p-3 border rounded mb-6" />',
-        '        <button type="submit" className="w-full p-3 bg-blue-600 text-white rounded">',
-        '          Sign In',
-        '        </button>',
-        '      </form>',
-        '    </div>',
-        '  );',
-        '}',
-      ],
-      'src/pages/Dashboard.tsx': [
-        'import { useState, useEffect } from "react";',
-        '',
-        'export function Dashboard() {',
-        '  const [users, setUsers] = useState([',
-        '    { id: "1", name: "Alice", email: "alice@example.com" },',
-        '    { id: "2", name: "Bob", email: "bob@example.com" },',
-        '  ]);',
-        '',
-        '  return (',
-        '    <div className="p-8">',
-        '      <h1 className="text-3xl font-bold mb-6">Dashboard</h1>',
-        '      <div className="grid gap-4">',
-        '        {users.map((user) => (',
-        '          <div key={user.id} className="p-4 border rounded-lg shadow-sm">',
-        '            <h3 className="font-semibold">{user.name}</h3>',
-        '            <p className="text-gray-600">{user.email}</p>',
-        '          </div>',
-        '        ))}',
-        '      </div>',
-        '    </div>',
-        '  );',
-        '}',
-      ],
-      'src/App.tsx': [
-        'import { BrowserRouter, Routes, Route } from "react-router-dom";',
-        'import { LoginPage } from "./pages/Login";',
-        'import { Dashboard } from "./pages/Dashboard";',
-        '',
-        'function App() {',
-        '  return (',
-        '    <BrowserRouter>',
-        '      <Routes>',
-        '        <Route path="/login" element={<LoginPage />} />',
-        '        <Route path="/" element={<Dashboard />} />',
-        '      </Routes>',
-        '    </BrowserRouter>',
-        '  );',
-        '}',
-        '',
-        'export default App;',
-      ],
-      'src/lib/api.ts': [
-        'const BASE = import.meta.env.VITE_API_URL || "http://localhost:4000";',
-        '',
-        'async function request<T>(path: string, opts?: RequestInit): Promise<T> {',
-        '  const res = await fetch(BASE + path, {',
-        '    headers: { "Content-Type": "application/json" },',
-        '    ...opts,',
-        '  });',
-        '  if (!res.ok) throw new Error(await res.text());',
-        '  return res.json();',
-        '}',
-        '',
-        'export const api = {',
-        '  login: (email: string, password: string) =>',
-        '    request<{ token: string }>("/api/login", {',
-        '      method: "POST",',
-        '      body: JSON.stringify({ email, password }),',
-        '    }),',
-        '  getUsers: () => request<{ id: string; name: string; email: string }[]>("/api/users"),',
-        '};',
-      ],
+    const DEFAULT_FILES = {
+      'package.json': JSON.stringify({ name: "my-app", version: "1.0.0", scripts: { dev: "vite", build: "tsc && vite build" }, dependencies: { react: "^18.2.0", "react-dom": "^18.2.0" } }, null, 2),
+      'src/main.tsx': `import React from "react";\nimport ReactDOM from "react-dom/client";\nimport App from "./App";\n\nReactDOM.createRoot(document.getElementById("root")!).render(\n  <React.StrictMode>\n    <App />\n  </React.StrictMode>\n);`,
+      'src/App.tsx': `import { BrowserRouter, Routes, Route } from "react-router-dom";\nimport { LoginPage } from "./pages/Login";\nimport { Dashboard } from "./pages/Dashboard";\n\nfunction App() {\n  return (\n    <BrowserRouter>\n      <Routes>\n        <Route path="/login" element={<LoginPage />} />\n        <Route path="/" element={<Dashboard />} />\n      </Routes>\n    </BrowserRouter>\n  );\n}\n\nexport default App;`,
+      'src/pages/Login.tsx': `import { useState } from "react";\n\nexport function LoginPage() {\n  const [email, setEmail] = useState("");\n  const [password, setPassword] = useState("");\n\n  const handleSubmit = (e) => {\n    e.preventDefault();\n    alert("Welcome!");\n  };\n\n  return (\n    <div className="login">\n      <h1>Sign In</h1>\n      <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" />\n      <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" />\n      <button onClick={handleSubmit}>Login</button>\n    </div>\n  );\n}`,
+      'src/pages/Dashboard.tsx': `import { useState } from "react";\n\nexport function Dashboard() {\n  const [users] = useState([\n    { id: 1, name: "Alice", email: "alice@example.com" },\n    { id: 2, name: "Bob", email: "bob@example.com" },\n  ]);\n\n  return (\n    <div className="dashboard">\n      <h1>Dashboard</h1>\n      <table>\n        {users.map(u => (\n          <tr key={u.id}><td>{u.name}</td><td>{u.email}</td></tr>\n        ))}\n      </table>\n    </div>\n  );\n}`,
     };
 
-    const TIMELINE_STEPS = [
-      { icon: "🔍", label: "Repository Scan" },
-      { icon: "📂", label: "Scanning project" },
-      { icon: "✅", label: "Scan complete" },
-      { icon: "📖", label: "Reading package.json" },
-      { icon: "📖", label: "Reading Login.tsx" },
-      { icon: "✏️", label: "Editing Login.tsx" },
-      { icon: "📄", label: "Creating Header.tsx" },
-      { icon: "📖", label: "Reading api.ts" },
-      { icon: "📦", label: "Installing packages" },
-      { icon: "📦", label: "Installing react" },
-      { icon: "📦", label: "Installing express" },
-      { icon: "✅", label: "Packages installed" },
-      { icon: "💻", label: "added 1,234 packages" },
-      { icon: "🔨", label: "Building" },
-      { icon: "🔨", label: "TypeScript compilation" },
-      { icon: "🔨", label: "Bundling" },
-      { icon: "❌", label: "Build error" },
-      { icon: "🔧", label: "Fixing errors" },
-      { icon: "💻", label: "Fix applied" },
-      { icon: "🔨", label: "Rebuilding" },
-      { icon: "✅", label: "Build success" },
-      { icon: "🧪", label: "Running tests" },
-      { icon: "📊", label: "Tests: 8 passed" },
-      { icon: "🎉", label: "Completed" },
-    ];
+    let fileSystem = {};
+    let openTabs = ['src/pages/Login.tsx'];
+    let activeTab = 'src/pages/Login.tsx';
+    let isRunning = false;
+    let demoStep = 0;
+    let demoTimer = null;
 
-    const TERMINAL_LINES = [
-      { text: "Ghost Developer Terminal", type: "info" },
-      { text: "------------------------------", type: "info" },
-      { text: "$ npm install", type: "cmd" },
-      { text: "added 1,234 packages in 12s", type: "ok" },
-      { text: "$ npm run build", type: "cmd" },
-      { text: "TypeScript compilation...", type: "info" },
-      { text: "ERROR in src/Login.tsx:5 - Property 'email' does not exist", type: "err" },
-      { text: "Fix applied: added type annotation to useState", type: "ok" },
-      { text: "Build succeeded in 4.2s", type: "ok" },
-      { text: "$ npm test", type: "cmd" },
-      { text: "Tests: 8 passed, 8 total (1.2s)", type: "ok" },
-      { text: "Task complete. All checks passed.", type: "ok" },
-    ];
+    function loadFS() {
+      try { const s = localStorage.getItem('gd_files'); if (s) return JSON.parse(s); } catch {}
+      return JSON.parse(JSON.stringify(DEFAULT_FILES));
+    }
+    function saveFS(fs) { localStorage.setItem('gd_files', JSON.stringify(fs)); }
+    fileSystem = loadFS();
 
-    const COLOR_MAP = {
-      'import': 'kw', 'const': 'kw', 'let': 'kw', 'var': 'kw', 'function': 'kw',
-      'export': 'kw', 'return': 'kw', 'from': 'kw', 'async': 'kw', 'await': 'kw',
-      'useState': 'fn', 'useEffect': 'fn', 'useNavigate': 'fn', 'useCallback': 'fn',
-      'useRef': 'fn', 'useContext': 'fn', 'createContext': 'fn',
-      'string': 'type', 'number': 'type', 'boolean': 'type', 'void': 'type',
-      'React': 'type', 'FormEvent': 'type', 'FC': 'type',
-    };
-
-    let currentFile = 'src/pages/Login.tsx';
-    let currentStep = 0;
-    let elapsed = 0;
-
-    function highlight(line) {
-      return line.replace(/(["'`].*?["'`])/g, '<span class="str">$1</span>')
-        .replace(/\/\/.*$/g, '<span class="cm">$&</span>')
-        .replace(/\b(\d+\.?\d*)\b/g, '<span class="num">$1</span>')
-        .replace(/\b(import|const|let|var|function|export|return|from|async|await|new|type|interface|extends|class)\b/g, '<span class="kw">$1</span>')
-        .replace(/\b(string|number|boolean|void|React|FormEvent|FC|useState|useEffect|useNavigate|useRef|useCallback|useContext|createContext)\b/g, (m) => {
-          if (m === 'string' || m === 'number' || m === 'boolean' || m === 'void' || m === 'React' || m === 'FormEvent' || m === 'FC') return `<span class="type">${m}</span>`;
-          return `<span class="fn">${m}</span>`;
+    function getTree() {
+      const root = {};
+      Object.keys(fileSystem).sort().forEach(path => {
+        const parts = path.split('/');
+        let node = root;
+        parts.forEach((p, i) => {
+          if (i === parts.length - 1) node[p] = null;
+          else { if (!node[p]) node[p] = {}; node = node[p]; }
         });
+      });
+      return root;
     }
 
-    function renderFile(path) {
-      const lines = FILES[path] || ['// Select a file'];
-      const el = document.getElementById('editorContent');
-      el.innerHTML = lines.map((l, i) =>
-        `<span class="line-num">${i + 1}</span>${highlight(l)}`
-      ).join('\n');
-    }
-
-    function selectFile(el, path) {
-      document.querySelectorAll('.file-item.active').forEach(f => f.classList.remove('active'));
-      el.classList.add('active');
-      currentFile = path;
-      renderFile(path);
-      document.getElementById('currentFile').textContent = path;
-    }
-
-    function toggleFolder(el) {
-      const arrow = el.querySelector('.folder-arrow');
-      arrow.textContent = arrow.textContent === '▼' ? '▶' : '▼';
-      let next = el.nextElementSibling;
-      while (next && next.classList.contains('indent-' + (parseInt(el.classList[1].split('-')[1]) + 1))) {
-        next.style.display = next.style.display === 'none' ? '' : 'none';
-        next = next.nextElementSibling;
+    function renderTree() {
+      const tree = getTree();
+      let html = '';
+      function walk(node, depth) {
+        Object.keys(node).sort().forEach(name => {
+          const isFolder = node[name] !== null;
+          const path = buildPath(name, depth);
+          const isActive = path === activeTab;
+          const cls = ['file-item', 'indent-' + depth, isActive ? 'active' : ''].join(' ');
+          html += '<div class="' + cls + '" onclick="openFile(\'' + path + '\')" title="' + path + '">';
+          html += '<span class="folder-arrow" style="visibility:' + (isFolder ? 'visible' : 'hidden') + '">' + (isFolder ? '▶' : '📄') + '</span>';
+          html += '<span>' + name + '</span>';
+          html += '<span class="file-del" onclick="event.stopPropagation(); deleteFile(\'' + path + '\')">×</span>';
+          html += '</div>';
+          if (isFolder) walk(node[name], depth + 1);
+        });
       }
+      walk(tree, 0);
+      document.getElementById('fileTree').innerHTML = html;
     }
 
-    function addTerminalLine(text, type = 'info') {
+    function buildPath(name, depth) {
+      // Simplified - constructs path from the tree walk context
+      // Since our tree is flat-keyed, we can find by checking which keys end with this name
+      const matches = Object.keys(fileSystem).filter(k => k.endsWith('/' + name) || k === name);
+      return matches[0] || name;
+    }
+
+    function openFile(path) {
+      if (!fileSystem[path]) return;
+      activeTab = path;
+      if (!openTabs.includes(path)) openTabs.push(path);
+      renderTabs();
+      renderTree();
+      renderEditor();
+    }
+
+    function renderTabs() {
+      const el = document.getElementById('editorTabs');
+      if (!openTabs.length) { el.innerHTML = ''; return; }
+      el.innerHTML = openTabs.map(p =>
+        '<div class="tab' + (p === activeTab ? ' active' : '') + '" onclick="openFile(\'' + p + '\')">' +
+        p.split('/').pop() +
+        '<span class="close" onclick="event.stopPropagation(); closeTab(\'' + p + '\')">×</span></div>'
+      ).join('');
+    }
+
+    function closeTab(path) {
+      openTabs = openTabs.filter(p => p !== path);
+      if (activeTab === path) activeTab = openTabs.length ? openTabs[openTabs.length - 1] : null;
+      renderTabs();
+      renderEditor();
+      renderTree();
+    }
+
+    function renderEditor() {
+      const container = document.getElementById('editorContainer');
+      const welcome = document.getElementById('welcomeScreen');
+      if (!activeTab || !fileSystem[activeTab]) {
+        welcome.style.display = 'flex';
+        container.innerHTML = ''; container.appendChild(welcome);
+        document.getElementById('currentFile').textContent = '—';
+        return;
+      }
+      welcome.style.display = 'none';
+      const content = fileSystem[activeTab];
+      document.getElementById('currentFile').textContent = activeTab;
+      container.innerHTML = '<textarea id="codeEditor" spellcheck="false">' + esc(content) + '</textarea>';
+      document.getElementById('codeEditor').addEventListener('input', function() {
+        fileSystem[activeTab] = this.value;
+        saveFS(fileSystem);
+      });
+    }
+
+    function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+    function createFile() {
+      const name = prompt('File path (e.g. src/utils/helpers.ts):');
+      if (!name || fileSystem[name]) return;
+      fileSystem[name] = '// ' + name + '\n';
+      saveFS(fileSystem);
+      openFile(name);
+      term('Created: ' + name, 'ok');
+    }
+
+    function deleteFile(path) {
+      if (!confirm('Delete ' + path + '?')) return;
+      delete fileSystem[path];
+      saveFS(fileSystem);
+      if (activeTab === path) {
+        openTabs = openTabs.filter(p => p !== path);
+        activeTab = openTabs.length ? openTabs[openTabs.length - 1] : null;
+      }
+      renderTree(); renderTabs(); renderEditor();
+      term('Deleted: ' + path);
+    }
+
+    function term(text, type) {
       const el = document.getElementById('terminalOutput');
-      const div = document.createElement('div');
-      div.className = 'terminal-line ' + (type === 'cmd' ? 'cmd' : type === 'err' ? 'err' : type === 'ok' ? 'ok' : '');
-      div.textContent = text;
-      el.appendChild(div);
+      const d = document.createElement('div');
+      d.className = 'terminal-line ' + (type === 'cmd' ? 'cmd' : type === 'err' ? 'err' : type === 'ok' ? 'ok' : '');
+      d.textContent = text;
+      el.appendChild(d);
       el.scrollTop = el.scrollHeight;
     }
 
-    function addTimelineStep(icon, label, active = false) {
+    const DEMO_STEPS = [
+      'Scanning project...', 'Analyzing dependencies...', 'Reading source files...',
+      'Generating code...', 'Creating components...', 'Installing packages...',
+      'Building project...', 'Running tests...', 'Task complete!',
+    ];
+
+    function renderTimeline(idx) {
       const el = document.getElementById('timelineList');
-      const step = document.createElement('div');
-      step.className = 'tl-step';
-      step.innerHTML = `<div class="tl-icon ${active ? 'active' : 'done'}">${active ? '<span class="spin-dot"></span>' : icon}</div><div class="tl-text ${active ? 'active' : ''}">${label}</div>`;
-      el.appendChild(step);
-      if (active) step.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.innerHTML = DEMO_STEPS.map((s, i) =>
+        '<div class="tl-step"><div class="tl-icon ' + (i === idx ? 'active' : i < idx ? 'done' : '') + '">' +
+        (i === idx ? '<span class="spin-dot"></span>' : ['🔍','📂','📖','✏️','📄','📦','🔨','🧪','🎉'][i]) + '</div>' +
+        '<div class="tl-text' + (i === idx ? ' active' : '') + '">' + s + '</div></div>'
+      ).join('');
     }
 
-    let prevStep = -1;
-    let tlIdx = 0;
+    function runTask(task) {
+      if (isRunning) { stopTask(); return; }
+      isRunning = true;
+      const input = document.getElementById('taskInput');
+      const btn = document.getElementById('actionBtn');
+      document.getElementById('agentStatus').textContent = 'Running';
+      btn.textContent = 'Stop'; btn.className = 'stop';
+      term('$ ' + task, 'cmd');
 
-    function demoLoop() {
-      if (currentStep >= 60) {
-        document.getElementById('agentStatus').textContent = 'Completed';
-        document.getElementById('actionBtn').textContent = 'Run';
-        document.getElementById('actionBtn').disabled = false;
-        document.getElementById('progressFill').style.width = '100%';
-        document.getElementById('statusProgress').textContent = '100';
-        return;
-      }
-
-      elapsed = Math.floor(currentStep / 2);
-      document.getElementById('elapsed').textContent = elapsed + 's elapsed';
-      document.getElementById('statusElapsed').textContent = elapsed;
-
-      const stepIdx = Math.floor(currentStep / 2.5);
-      if (stepIdx < TIMELINE_STEPS.length && stepIdx !== prevStep) {
-        prevStep = stepIdx;
-        document.querySelectorAll('.tl-step').forEach(s => s.remove());
-        for (let i = 0; i <= stepIdx; i++) {
-          const isActive = i === stepIdx;
-          addTimelineStep(TIMELINE_STEPS[i].icon, TIMELINE_STEPS[i].label, isActive);
+      if (task.toLowerCase().includes('login')) {
+        if (!fileSystem['src/components/LoginForm.tsx']) {
+          fileSystem['src/components/LoginForm.tsx'] = 'import { useState } from "react";\n\nexport function LoginForm() {\n  const [email, setEmail] = useState("");\n  const [password, setPassword] = useState("");\n  const handleSubmit = (e) => { e.preventDefault(); alert("Login: " + email); };\n  return (\n    <form onSubmit={handleSubmit}>\n      <input value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" />\n      <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" />\n      <button type="submit">Sign In</button>\n    </form>\n  );\n}';
+          saveFS(fileSystem); renderTree();
         }
-        tlIdx++;
+      }
+      if (task.toLowerCase().includes('dashboard')) {
+        if (!fileSystem['src/components/Dashboard.tsx']) {
+          fileSystem['src/components/Dashboard.tsx'] = 'import { useState } from "react";\n\nexport function Dashboard() {\n  const [items] = useState([{id:1,name:"Alpha",status:"active"},{id:2,name:"Beta",status:"pending"}]);\n  return (\n    <div className="p-4">\n      <h1>Dashboard</h1>\n      {items.map(i => <div key={i.id}>{i.name} - {i.status}</div>)}\n    </div>\n  );\n}';
+          saveFS(fileSystem); renderTree();
+        }
+      }
+      if (task.toLowerCase().includes('api')) {
+        if (!fileSystem['src/lib/api.ts']) {
+          fileSystem['src/lib/api.ts'] = 'const API = "http://localhost:4000";\nexport async function get<T>(p: string): Promise<T> {\n  const r = await fetch(API + p);\n  if (!r.ok) throw new Error(r.statusText);\n  return r.json();\n}\nexport async function post<T>(p: string, d: unknown): Promise<T> {\n  const r = await fetch(API + p, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(d) });\n  if (!r.ok) throw new Error(r.statusText);\n  return r.json();\n}';
+          saveFS(fileSystem); renderTree();
+        }
       }
 
-      const progress = Math.min(Math.floor((currentStep / 60) * 100), 99);
-      document.getElementById('progressFill').style.width = progress + '%';
-      document.getElementById('stepCount').textContent = `${Math.min(stepIdx + 1, TIMELINE_STEPS.length)}/${TIMELINE_STEPS.length} steps`;
-      document.getElementById('statusProgress').textContent = progress;
+      let step = 0;
+      const total = 50;
+      function tick() {
+        step++;
+        const idx = Math.min(Math.floor(step / (total / DEMO_STEPS.length)), DEMO_STEPS.length - 1);
+        renderTimeline(idx);
+        const pct = Math.min(Math.round(step / total * 100), 99);
+        document.getElementById('progressFill').style.width = pct + '%';
+        document.getElementById('stepCount').textContent = (idx + 1) + '/' + DEMO_STEPS.length + ' steps';
+        document.getElementById('statusProgress').textContent = pct;
 
-      if (currentStep % 5 === 0 && tlIdx < TERMINAL_LINES.length) {
-        const line = TERMINAL_LINES[Math.min(tlIdx, TERMINAL_LINES.length - 1)];
-        addTerminalLine(line.text, line.type);
-        tlIdx++;
+        if (step % 8 === 0) {
+          const msgs = ['Checking syntax...', 'Optimizing imports...', 'Generating types...', 'Running linter...'];
+          term(msgs[Math.floor(step / 8) % msgs.length]);
+        }
+
+        if (step >= total) {
+          renderTimeline(DEMO_STEPS.length - 1);
+          document.getElementById('progressFill').style.width = '100%';
+          document.getElementById('statusProgress').textContent = '100';
+          document.getElementById('agentStatus').textContent = 'Completed';
+          document.getElementById('stepCount').textContent = DEMO_STEPS.length + '/' + DEMO_STEPS.length + ' steps';
+          term('Task completed!');
+          stopTask();
+          return;
+        }
+        demoTimer = setTimeout(tick, 200);
       }
-
-      currentStep++;
-      setTimeout(demoLoop, 600);
+      tick();
     }
 
-    renderFile('src/pages/Login.tsx');
-    addTerminalLine('$ Ready. Starting demo...', 'cmd');
-    setTimeout(demoLoop, 1000);
+    function stopTask() {
+      isRunning = false;
+      if (demoTimer) { clearTimeout(demoTimer); demoTimer = null; }
+      document.getElementById('agentStatus').textContent = 'Idle';
+      document.getElementById('actionBtn').textContent = 'Run';
+      document.getElementById('actionBtn').className = '';
+    }
+
+    function runExample(task) {
+      document.getElementById('taskInput').value = task;
+      runTask(task);
+    }
+
+    document.getElementById('newFileBtn').onclick = createFile;
+    document.getElementById('actionBtn').onclick = function() {
+      const t = document.getElementById('taskInput').value.trim();
+      if (isRunning) { stopTask(); return; }
+      if (!t) { document.getElementById('taskInput').focus(); return; }
+      runTask(t);
+    };
+    document.getElementById('taskInput').onkeydown = function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); document.getElementById('actionBtn').click(); }
+    };
+    document.getElementById('actFiles').onclick = function() {
+      document.querySelectorAll('.activity button').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      document.getElementById('sidebarTitle').textContent = 'Explorer';
+      document.getElementById('newFileBtn').style.display = '';
+      renderTree();
+    };
+    document.getElementById('actTimeline').onclick = function() {
+      document.querySelectorAll('.activity button').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      document.getElementById('sidebarTitle').textContent = 'Agent Timeline';
+      document.getElementById('newFileBtn').style.display = 'none';
+      renderTimeline(-1);
+    };
+
+    renderTree();
+    renderTabs();
+    if (activeTab) renderEditor();
+    term('Ghost Developer ready. Create or edit files, then type a task.', 'info');
   </script>
 </body>
 </html>
