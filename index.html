@@ -11,6 +11,8 @@
     .header { display: flex; align-items: center; height: 36px; background: #252526; border-bottom: 1px solid #3c3c3c; padding: 0 16px; font-size: 12px; gap: 8px; }
     .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
     .dot.green { background: #4ec9b0; animation: pulse 2s ease-in-out infinite; }
+    .dot.yellow { background: #dcdcaa; animation: pulse 2s ease-in-out infinite; }
+    .dot.red { background: #f44747; }
     .brand { color: #858585; }
     .sep { color: #3c3c3c; margin: 0 8px; }
     .label { color: #858585; }
@@ -58,6 +60,7 @@
     .tl-icon .spin-dot { width: 8px; height: 8px; border-radius: 50%; background: #4ec9b0; animation: pulse 2s ease-in-out infinite; display: block; }
     .tl-text { font-size: 12px; color: #ccc; }
     .tl-text.active { color: #4ec9b0; }
+    .tl-text.ai { color: #dcdcaa; }
     .terminal { height: 160px; background: #1e1e1e; border-top: 1px solid #3c3c3c; display: flex; flex-direction: column; }
     .terminal-tabs { height: 32px; background: #252526; border-bottom: 1px solid #3c3c3c; display: flex; align-items: center; padding: 0 16px; gap: 12px; }
     .terminal-tab { font-size: 11px; color: #858585; cursor: pointer; }
@@ -67,6 +70,8 @@
     .terminal-line.cmd { color: #4ec9b0; }
     .terminal-line.err { color: #f44747; }
     .terminal-line.ok { color: #4ec9b0; }
+    .terminal-line.info { color: #dcdcaa; }
+    .terminal-line.load { color: #569cd6; animation: pulse 1.5s ease-in-out infinite; }
     .cursor::after { content: '|'; animation: blink 1s infinite; color: #007acc; }
     .input-bar { background: #252526; border-top: 1px solid #3c3c3c; padding: 12px 16px; }
     .input-row { display: flex; gap: 8px; max-width: 800px; margin: 0 auto; }
@@ -90,13 +95,16 @@
     .file-item .file-del:hover { opacity: 1; color: #f44747; }
     .welcome { display: flex; align-items: center; justify-content: center; height: 100%; flex-direction: column; gap: 16px; color: #858585; font-size: 14px; }
     .welcome h2 { color: #ccc; font-size: 20px; font-weight: 400; }
+    #aiStatus { font-size: 11px; }
+    .model-badge { font-size: 10px; background: #333; color: #858585; padding: 2px 8px; border-radius: 8px; }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <span class="dot green" id="statusDot"></span>
+      <span class="dot yellow" id="statusDot"></span>
       <span class="brand">GHOST DEVELOPER</span>
+      <span class="model-badge" id="modelBadge">⏳ AI loading...</span>
       <span class="sep">|</span>
       <span class="label">Agent Status:</span>
       <span class="val" id="agentStatus">Idle</span>
@@ -123,7 +131,7 @@
         <div class="editor" id="editorContainer">
           <div class="welcome" id="welcomeScreen">
             <h2>👻 Ghost Developer</h2>
-            <p>Create a file or type a task to begin</p>
+            <p id="welcomeText">Loading AI model in browser...</p>
           </div>
         </div>
       </div>
@@ -131,7 +139,7 @@
         <div class="timeline-title">Agent Activity</div>
         <div class="timeline-progress">
           <div class="timeline-stats">
-            <span id="stepCount">0 steps</span>
+            <span id="stepCount">0 files</span>
             <span id="elapsed">0s</span>
           </div>
           <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
@@ -146,7 +154,7 @@
       </div>
       <div class="terminal-output" id="terminalOutput">
         <div class="terminal-line">Ghost Developer Terminal</div>
-        <div class="terminal-line">Type a task and press Run.</div>
+        <div class="terminal-line load" id="modelLoadStatus">⏳ Initializing browser AI...</div>
       </div>
     </div>
     <div class="input-bar">
@@ -155,10 +163,10 @@
         <button id="actionBtn">Run</button>
       </div>
       <div class="examples">
-        <button onclick="runExample('Create a login page with email and password validation')">Login page</button>
-        <button onclick="runExample('Add a user dashboard with data table')">Dashboard</button>
-        <button onclick="runExample('Create an API client module')">API client</button>
-        <button onclick="runExample('Add error handling and logging')">Error handling</button>
+        <button onclick="runExample('Create a login form with email validation in React')">Login form</button>
+        <button onclick="runExample('Create a Button component with variants')">Button</button>
+        <button onclick="runExample('Create a data table component from an array')">Data table</button>
+        <button onclick="runExample('Create a custom React hook for fetching data')">useFetch hook</button>
       </div>
     </div>
     <div class="status">
@@ -172,21 +180,23 @@
     </div>
   </div>
 
-  <script>
+  <script type="module">
+    // ===== File System (localStorage) =====
     const DEFAULT_FILES = {
       'package.json': JSON.stringify({ name: "my-app", version: "1.0.0", scripts: { dev: "vite", build: "tsc && vite build" }, dependencies: { react: "^18.2.0", "react-dom": "^18.2.0" } }, null, 2),
       'src/main.tsx': `import React from "react";\nimport ReactDOM from "react-dom/client";\nimport App from "./App";\n\nReactDOM.createRoot(document.getElementById("root")!).render(\n  <React.StrictMode>\n    <App />\n  </React.StrictMode>\n);`,
       'src/App.tsx': `import { BrowserRouter, Routes, Route } from "react-router-dom";\nimport { LoginPage } from "./pages/Login";\nimport { Dashboard } from "./pages/Dashboard";\n\nfunction App() {\n  return (\n    <BrowserRouter>\n      <Routes>\n        <Route path="/login" element={<LoginPage />} />\n        <Route path="/" element={<Dashboard />} />\n      </Routes>\n    </BrowserRouter>\n  );\n}\n\nexport default App;`,
-      'src/pages/Login.tsx': `import { useState } from "react";\n\nexport function LoginPage() {\n  const [email, setEmail] = useState("");\n  const [password, setPassword] = useState("");\n\n  const handleSubmit = (e) => {\n    e.preventDefault();\n    alert("Welcome!");\n  };\n\n  return (\n    <div className="login">\n      <h1>Sign In</h1>\n      <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" />\n      <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" />\n      <button onClick={handleSubmit}>Login</button>\n    </div>\n  );\n}`,
-      'src/pages/Dashboard.tsx': `import { useState } from "react";\n\nexport function Dashboard() {\n  const [users] = useState([\n    { id: 1, name: "Alice", email: "alice@example.com" },\n    { id: 2, name: "Bob", email: "bob@example.com" },\n  ]);\n\n  return (\n    <div className="dashboard">\n      <h1>Dashboard</h1>\n      <table>\n        {users.map(u => (\n          <tr key={u.id}><td>{u.name}</td><td>{u.email}</td></tr>\n        ))}\n      </table>\n    </div>\n  );\n}`,
+      'src/pages/Login.tsx': `import { useState } from "react";\n\nexport function LoginPage() {\n  const [email, setEmail] = useState("");\n  const [password, setPassword] = useState("");\n  const [error, setError] = useState("");\n\n  const handleSubmit = (e) => {\n    e.preventDefault();\n    if (!email) { setError("Email required"); return; }\n    if (!password) { setError("Password required"); return; }\n    alert("Welcome!");\n  };\n\n  return (\n    <div style={{maxWidth:400,margin:"40px auto",padding:24}}>\n      <h1>Sign In</h1>\n      {error && <p style={{color:"red"}}>{error}</p>}\n      <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" style={{display:"block",width:"100%",margin:"8px 0",padding:8}} />\n      <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" style={{display:"block",width:"100%",margin:"8px 0",padding:8}} />\n      <button onClick={handleSubmit} style={{padding:"8px 24px",background:"#007acc",color:"white",border:"none",borderRadius:4}}>Login</button>\n    </div>\n  );\n}`,
+      'src/pages/Dashboard.tsx': `import { useState } from "react";\n\nexport function Dashboard() {\n  const [users] = useState([\n    { id: 1, name: "Alice", email: "alice@example.com" },\n    { id: 2, name: "Bob", email: "bob@example.com" },\n  ]);\n\n  return (\n    <div className="dashboard">\n      <h1>Dashboard</h1>\n      <table border="1" cellPadding="8">\n        {users.map(u => (\n          <tr key={u.id}><td>{u.name}</td><td>{u.email}</td></tr>\n        ))}\n      </table>\n    </div>\n  );\n}`,
     };
 
     let fileSystem = {};
     let openTabs = ['src/pages/Login.tsx'];
     let activeTab = 'src/pages/Login.tsx';
     let isRunning = false;
-    let demoStep = 0;
-    let demoTimer = null;
+    let aiEngine = null;
+    let isAIReady = false;
+    let modelName = '';
 
     function loadFS() {
       try { const s = localStorage.getItem('gd_files'); if (s) return JSON.parse(s); } catch {}
@@ -214,13 +224,22 @@
       function walk(node, depth) {
         Object.keys(node).sort().forEach(name => {
           const isFolder = node[name] !== null;
-          const path = buildPath(name, depth);
+          let path;
+          if (depth === 0) path = name;
+          else {
+            const matches = Object.keys(fileSystem).filter(k => {
+              const parts = k.split('/');
+              return parts[depth] === name;
+            });
+            path = matches[0] || name;
+          }
           const isActive = path === activeTab;
+          if (!path) return;
           const cls = ['file-item', 'indent-' + depth, isActive ? 'active' : ''].join(' ');
-          html += '<div class="' + cls + '" onclick="openFile(\'' + path + '\')" title="' + path + '">';
+          html += '<div class="' + cls + '" onclick="window.openFile(\'' + path + '\')" title="' + path + '">';
           html += '<span class="folder-arrow" style="visibility:' + (isFolder ? 'visible' : 'hidden') + '">' + (isFolder ? '▶' : '📄') + '</span>';
           html += '<span>' + name + '</span>';
-          html += '<span class="file-del" onclick="event.stopPropagation(); deleteFile(\'' + path + '\')">×</span>';
+          html += '<span class="file-del" onclick="event.stopPropagation(); window.deleteFile(\'' + path + '\')">×</span>';
           html += '</div>';
           if (isFolder) walk(node[name], depth + 1);
         });
@@ -229,46 +248,38 @@
       document.getElementById('fileTree').innerHTML = html;
     }
 
-    function buildPath(name, depth) {
-      // Simplified - constructs path from the tree walk context
-      // Since our tree is flat-keyed, we can find by checking which keys end with this name
-      const matches = Object.keys(fileSystem).filter(k => k.endsWith('/' + name) || k === name);
-      return matches[0] || name;
-    }
-
-    function openFile(path) {
+    window.openFile = function(path) {
       if (!fileSystem[path]) return;
       activeTab = path;
       if (!openTabs.includes(path)) openTabs.push(path);
       renderTabs();
       renderTree();
       renderEditor();
-    }
+    };
 
     function renderTabs() {
       const el = document.getElementById('editorTabs');
       if (!openTabs.length) { el.innerHTML = ''; return; }
       el.innerHTML = openTabs.map(p =>
-        '<div class="tab' + (p === activeTab ? ' active' : '') + '" onclick="openFile(\'' + p + '\')">' +
+        '<div class="tab' + (p === activeTab ? ' active' : '') + '" onclick="window.openFile(\'' + p + '\')">' +
         p.split('/').pop() +
-        '<span class="close" onclick="event.stopPropagation(); closeTab(\'' + p + '\')">×</span></div>'
+        '<span class="close" onclick="event.stopPropagation(); window.closeTab(\'' + p + '\')">×</span></div>'
       ).join('');
     }
 
-    function closeTab(path) {
+    window.closeTab = function(path) {
       openTabs = openTabs.filter(p => p !== path);
       if (activeTab === path) activeTab = openTabs.length ? openTabs[openTabs.length - 1] : null;
       renderTabs();
       renderEditor();
       renderTree();
-    }
+    };
 
     function renderEditor() {
       const container = document.getElementById('editorContainer');
       const welcome = document.getElementById('welcomeScreen');
       if (!activeTab || !fileSystem[activeTab]) {
         welcome.style.display = 'flex';
-        container.innerHTML = ''; container.appendChild(welcome);
         document.getElementById('currentFile').textContent = '—';
         return;
       }
@@ -284,16 +295,16 @@
 
     function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-    function createFile() {
+    window.createFile = function() {
       const name = prompt('File path (e.g. src/utils/helpers.ts):');
       if (!name || fileSystem[name]) return;
       fileSystem[name] = '// ' + name + '\n';
       saveFS(fileSystem);
-      openFile(name);
+      window.openFile(name);
       term('Created: ' + name, 'ok');
-    }
+    };
 
-    function deleteFile(path) {
+    window.deleteFile = function(path) {
       if (!confirm('Delete ' + path + '?')) return;
       delete fileSystem[path];
       saveFS(fileSystem);
@@ -303,94 +314,224 @@
       }
       renderTree(); renderTabs(); renderEditor();
       term('Deleted: ' + path);
-    }
+    };
 
     function term(text, type) {
       const el = document.getElementById('terminalOutput');
       const d = document.createElement('div');
-      d.className = 'terminal-line ' + (type === 'cmd' ? 'cmd' : type === 'err' ? 'err' : type === 'ok' ? 'ok' : '');
+      d.className = 'terminal-line ' + (type === 'cmd' ? 'cmd' : type === 'err' ? 'err' : type === 'ok' ? 'ok' : type === 'info' ? 'info' : '');
       d.textContent = text;
       el.appendChild(d);
       el.scrollTop = el.scrollHeight;
     }
 
-    const DEMO_STEPS = [
-      'Scanning project...', 'Analyzing dependencies...', 'Reading source files...',
-      'Generating code...', 'Creating components...', 'Installing packages...',
-      'Building project...', 'Running tests...', 'Task complete!',
-    ];
-
-    function renderTimeline(idx) {
+    function addTimelineStep(icon, label, cls) {
       const el = document.getElementById('timelineList');
-      el.innerHTML = DEMO_STEPS.map((s, i) =>
-        '<div class="tl-step"><div class="tl-icon ' + (i === idx ? 'active' : i < idx ? 'done' : '') + '">' +
-        (i === idx ? '<span class="spin-dot"></span>' : ['🔍','📂','📖','✏️','📄','📦','🔨','🧪','🎉'][i]) + '</div>' +
-        '<div class="tl-text' + (i === idx ? ' active' : '') + '">' + s + '</div></div>'
-      ).join('');
+      const d = document.createElement('div');
+      d.className = 'tl-step';
+      d.innerHTML = '<div class="tl-icon ' + (cls || 'done') + '">' + icon + '</div><div class="tl-text' + (cls === 'active' ? ' active' : '') + (cls === 'ai' ? ' ai' : '') + '">' + label + '</div>';
+      el.appendChild(d);
+      el.scrollTop = el.scrollHeight;
     }
 
-    function runTask(task) {
+    // ===== WebLLM AI Engine =====
+    async function initAI() {
+      const loadEl = document.getElementById('modelLoadStatus');
+      const badge = document.getElementById('modelBadge');
+      const welcomeText = document.getElementById('welcomeText');
+      
+      // Try Chrome Built-in AI first (Gemini Nano)
+      if (window.ai && window.ai.languageModel) {
+        try {
+          loadEl.textContent = '✅ Chrome AI detected! Initializing...';
+          badge.textContent = '⚡ Chrome AI';
+          const capabilities = await window.ai.languageModel.capabilities();
+          if (capabilities.available === 'readily') {
+            aiEngine = await window.ai.languageModel.create();
+            isAIReady = true;
+            modelName = 'Gemini Nano (Chrome)';
+            loadEl.textContent = '✅ Chrome AI ready! Type a task and press Run.';
+            badge.textContent = '⚡ Gemini Nano';
+            document.getElementById('statusDot').className = 'dot green';
+            welcomeText.textContent = 'Chrome AI is ready! Type a task to generate code.';
+            term('Chrome Built-in AI ready (Gemini Nano)', 'ok');
+            return;
+          } else {
+            loadEl.textContent = '⚠ Chrome AI not readily available, falling back to WebLLM...';
+          }
+        } catch (e) {
+          loadEl.textContent = '⚠ Chrome AI error: ' + e.message + '. Trying WebLLM...';
+        }
+      }
+
+      // Fallback to WebLLM
+      try {
+        loadEl.textContent = '⏳ Loading WebLLM (6MB)...';
+        badge.textContent = '⏳ WebLLM loading...';
+        const { CreateMLCEngine } = await import('https://esm.run/@mlc-ai/web-llm');
+        
+        loadEl.textContent = '⏳ Downloading TinyLlama model (~700MB first time)...';
+        badge.textContent = '⏳ Downloading AI...';
+        term('Downloading AI model (~700MB first time, then cached in browser)', 'info');
+        
+        // Use a small model
+        const modelId = 'TinyLlama-1.1B-Chat-v1.0-q4f16_1-MLC';
+        
+        aiEngine = await CreateMLCEngine(modelId, {
+          initProgressCallback: (progress) => {
+            const pct = Math.round(progress.progress * 100);
+            loadEl.textContent = '⏳ Loading AI: ' + progress.text + ' (' + pct + '%)';
+            badge.textContent = '⏳ ' + pct + '%';
+          }
+        });
+        
+        isAIReady = true;
+        modelName = 'TinyLlama-1.1B';
+        loadEl.textContent = '✅ AI ready! Type a task and press Run.';
+        badge.textContent = '🤖 TinyLlama';
+        document.getElementById('statusDot').className = 'dot green';
+        welcomeText.textContent = 'AI is ready! Type a task to generate code.';
+        term('WebLLM ready (TinyLlama-1.1B in browser)', 'ok');
+      } catch (e) {
+        loadEl.textContent = '⚠ AI not available: ' + e.message;
+        badge.textContent = '⚠ AI unavailable';
+        welcomeText.textContent = 'AI model failed to load. Create/edit files manually or run the local backend.';
+        term('AI init failed: ' + e.message, 'err');
+        term('Open in Chrome/Edge with WebGPU for browser AI, or run the local backend.', 'info');
+      }
+    }
+
+    // ===== Task Runner =====
+    async function runTask(task) {
       if (isRunning) { stopTask(); return; }
+      if (!task.trim()) return;
+      
       isRunning = true;
       const input = document.getElementById('taskInput');
       const btn = document.getElementById('actionBtn');
       document.getElementById('agentStatus').textContent = 'Running';
       btn.textContent = 'Stop'; btn.className = 'stop';
+      document.getElementById('progressFill').style.width = '0%';
+      document.getElementById('timelineList').innerHTML = '';
+      
       term('$ ' + task, 'cmd');
-
-      if (task.toLowerCase().includes('login')) {
-        if (!fileSystem['src/components/LoginForm.tsx']) {
-          fileSystem['src/components/LoginForm.tsx'] = 'import { useState } from "react";\n\nexport function LoginForm() {\n  const [email, setEmail] = useState("");\n  const [password, setPassword] = useState("");\n  const handleSubmit = (e) => { e.preventDefault(); alert("Login: " + email); };\n  return (\n    <form onSubmit={handleSubmit}>\n      <input value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" />\n      <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" />\n      <button type="submit">Sign In</button>\n    </form>\n  );\n}';
-          saveFS(fileSystem); renderTree();
-        }
+      
+      if (isAIReady && aiEngine) {
+        await runAITask(task);
+      } else {
+        term('AI not loaded. Run the local backend (npx tsx src/index.ts on port 4000) or open in Chrome with WebGPU.', 'err');
+        term('Falling back to built-in responses.', 'info');
+        runFallbackTask(task);
       }
-      if (task.toLowerCase().includes('dashboard')) {
-        if (!fileSystem['src/components/Dashboard.tsx']) {
-          fileSystem['src/components/Dashboard.tsx'] = 'import { useState } from "react";\n\nexport function Dashboard() {\n  const [items] = useState([{id:1,name:"Alpha",status:"active"},{id:2,name:"Beta",status:"pending"}]);\n  return (\n    <div className="p-4">\n      <h1>Dashboard</h1>\n      {items.map(i => <div key={i.id}>{i.name} - {i.status}</div>)}\n    </div>\n  );\n}';
-          saveFS(fileSystem); renderTree();
-        }
-      }
-      if (task.toLowerCase().includes('api')) {
-        if (!fileSystem['src/lib/api.ts']) {
-          fileSystem['src/lib/api.ts'] = 'const API = "http://localhost:4000";\nexport async function get<T>(p: string): Promise<T> {\n  const r = await fetch(API + p);\n  if (!r.ok) throw new Error(r.statusText);\n  return r.json();\n}\nexport async function post<T>(p: string, d: unknown): Promise<T> {\n  const r = await fetch(API + p, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(d) });\n  if (!r.ok) throw new Error(r.statusText);\n  return r.json();\n}';
-          saveFS(fileSystem); renderTree();
-        }
-      }
+      
+      stopTask();
+    }
 
-      let step = 0;
-      const total = 50;
-      function tick() {
-        step++;
-        const idx = Math.min(Math.floor(step / (total / DEMO_STEPS.length)), DEMO_STEPS.length - 1);
-        renderTimeline(idx);
-        const pct = Math.min(Math.round(step / total * 100), 99);
-        document.getElementById('progressFill').style.width = pct + '%';
-        document.getElementById('stepCount').textContent = (idx + 1) + '/' + DEMO_STEPS.length + ' steps';
-        document.getElementById('statusProgress').textContent = pct;
-
-        if (step % 8 === 0) {
-          const msgs = ['Checking syntax...', 'Optimizing imports...', 'Generating types...', 'Running linter...'];
-          term(msgs[Math.floor(step / 8) % msgs.length]);
+    async function runAITask(task) {
+      addTimelineStep('🤖', 'AI analyzing task...', 'active');
+      term('🧠 Sending to ' + modelName + '...', 'info');
+      
+      const isCodeTask = task.toLowerCase().includes('create') || task.toLowerCase().includes('make') || task.toLowerCase().includes('write');
+      const prompt = isCodeTask 
+        ? `Generate a React TypeScript component for: ${task}\n\nReturn ONLY the raw TypeScript/React code. Include imports. No markdown, no explanation.`
+        : `Answer concisely about coding: ${task}`;
+      
+      let response = '';
+      try {
+        if (modelName === 'Gemini Nano (Chrome)' || modelName === 'Gemini Nano') {
+          const stream = await aiEngine.promptStreaming(prompt);
+          for await (const chunk of stream) {
+            response = chunk;
+          }
+        } else {
+          // WebLLM
+          const reply = await aiEngine.chat.completions.create({
+            messages: [
+              { role: 'system', content: 'You are a senior TypeScript/React developer. Generate clean, production-ready code. Return ONLY the code, no markdown formatting or explanation.' },
+              { role: 'user', content: prompt }
+            ],
+            max_tokens: 1024,
+            temperature: 0.2,
+          });
+          response = reply.choices[0]?.message?.content || '';
         }
-
-        if (step >= total) {
-          renderTimeline(DEMO_STEPS.length - 1);
-          document.getElementById('progressFill').style.width = '100%';
-          document.getElementById('statusProgress').textContent = '100';
-          document.getElementById('agentStatus').textContent = 'Completed';
-          document.getElementById('stepCount').textContent = DEMO_STEPS.length + '/' + DEMO_STEPS.length + ' steps';
-          term('Task completed!');
-          stopTask();
-          return;
-        }
-        demoTimer = setTimeout(tick, 200);
+      } catch (e) {
+        term('AI error: ' + e.message, 'err');
+        response = '';
       }
-      tick();
+      
+      // Clean response
+      response = response.replace(/^```[\w]*\n?/gm, '').replace(/\n```$/gm, '').replace(/^```$/gm, '').trim();
+      
+      if (!response) {
+        term('AI returned empty response. Try again.', 'err');
+        runFallbackTask(task);
+        return;
+      }
+      
+      // Determine filename
+      let fileName = 'src/components/Generated.tsx';
+      if (task.toLowerCase().includes('button')) fileName = 'src/components/Button.tsx';
+      else if (task.toLowerCase().includes('login') || task.toLowerCase().includes('form')) fileName = 'src/components/LoginForm.tsx';
+      else if (task.toLowerCase().includes('table') || task.toLowerCase().includes('data')) fileName = 'src/components/DataTable.tsx';
+      else if (task.toLowerCase().includes('hook') || task.toLowerCase().includes('use')) fileName = 'src/hooks/' + task.match(/use[A-Z]\w*/)?.[0] || 'useCustom.ts';
+      
+      // Create file
+      fileSystem[fileName] = response;
+      saveFS(fileSystem);
+      
+      addTimelineStep('📄', 'Created ' + fileName, 'done');
+      addTimelineStep('✅', 'AI generation complete', 'done');
+      
+      document.getElementById('progressFill').style.width = '100%';
+      document.getElementById('statusProgress').textContent = '100';
+      
+      term('✅ AI generated ' + fileName + ' (' + response.length + ' chars)', 'ok');
+      
+      // Open the new file
+      window.openFile(fileName);
+      renderTree();
+      renderTabs();
+    }
+
+    function runFallbackTask(task) {
+      addTimelineStep('📄', 'Generating file...', 'active');
+      
+      let fileName = 'src/components/Generated.tsx';
+      let content = '';
+      
+      if (task.toLowerCase().includes('login') || task.toLowerCase().includes('form')) {
+        fileName = 'src/components/LoginForm.tsx';
+        content = `import { useState } from "react";\n\ntype LoginFormProps = {\n  onLogin?: (email: string, password: string) => void;\n};\n\nexport function LoginForm({ onLogin }: LoginFormProps) {\n  const [email, setEmail] = useState("");\n  const [password, setPassword] = useState("");\n  const [error, setError] = useState("");\n\n  const handleSubmit = (e: React.FormEvent) => {\n    e.preventDefault();\n    if (!email || !password) { setError("All fields required"); return; }\n    setError("");\n    onLogin?.(email, password);\n  };\n\n  return (\n    <form onSubmit={handleSubmit} style={{ maxWidth: 400, margin: "40px auto", padding: 24 }}>\n      <h1>Sign In</h1>\n      {error && <p style={{ color: "red" }}>{error}</p>}\n      <div>\n        <label>Email</label>\n        <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" />\n      </div>\n      <div>\n        <label>Password</label>\n        <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" />\n      </div>\n      <button type="submit">Sign In</button>\n    </form>\n  );\n}`;
+      } else if (task.toLowerCase().includes('button')) {
+        fileName = 'src/components/Button.tsx';
+        content = `import React from "react";\n\ntype ButtonProps = {\n  variant?: "primary" | "secondary" | "danger";\n  size?: "sm" | "md" | "lg";\n  children: React.ReactNode;\n  onClick?: () => void;\n  disabled?: boolean;\n};\n\nconst variantStyles = {\n  primary: { background: "#007acc", color: "white" },\n  secondary: { background: "#6c757d", color: "white" },\n  danger: { background: "#dc3545", color: "white" },\n};\n\nconst sizeStyles = {\n  sm: { padding: "4px 12px", fontSize: 12 },\n  md: { padding: "8px 20px", fontSize: 14 },\n  lg: { padding: "12px 28px", fontSize: 16 },\n};\n\nexport function Button({ variant = "primary", size = "md", children, onClick, disabled }: ButtonProps) {\n  return (\n    <button\n      onClick={onClick}\n      disabled={disabled}\n      style={{\n        ...variantStyles[variant],\n        ...sizeStyles[size],\n        border: "none",\n        borderRadius: 6,\n        cursor: disabled ? "not-allowed" : "pointer",\n        opacity: disabled ? 0.6 : 1,\n      }}\n    >\n      {children}\n    </button>\n  );\n}`;
+      } else if (task.toLowerCase().includes('table') || task.toLowerCase().includes('data')) {
+        fileName = 'src/components/DataTable.tsx';
+        content = `import React from "react";\n\ntype Column<T> = {\n  key: keyof T;\n  header: string;\n  render?: (value: T[keyof T], row: T) => React.ReactNode;\n};\n\ntype DataTableProps<T> = {\n  data: T[];\n  columns: Column<T>[];\n};\n\nexport function DataTable<T extends Record<string, any>>({ data, columns }: DataTableProps<T>) {\n  return (\n    <table style={{ width: "100%", borderCollapse: "collapse" }}>\n      <thead>\n        <tr>\n          {columns.map(col => (\n            <th key={String(col.key)} style={{ border: "1px solid #333", padding: 8, textAlign: "left" }}>\n              {col.header}\n            </th>\n          ))}\n        </tr>\n      </thead>\n      <tbody>\n        {data.map((row, i) => (\n          <tr key={i}>\n            {columns.map(col => (\n              <td key={String(col.key)} style={{ border: "1px solid #333", padding: 8 }}>\n                {col.render ? col.render(row[col.key], row) : String(row[col.key])}\n              </td>\n            ))}\n          </tr>\n        ))}\n      </tbody>\n    </table>\n  );\n}`;
+      } else if (task.toLowerCase().includes('hook') || task.toLowerCase().includes('use')) {
+        const hookName = task.match(/use[A-Z]\w*/)?.[0] || 'useFetch';
+        fileName = 'src/hooks/' + hookName + '.ts';
+        content = `import { useState, useEffect } from "react";\n\ntype UseFetchResult<T> = {\n  data: T | null;\n  loading: boolean;\n  error: string | null;\n};\n\nexport function ${hookName}<T = any>(url: string): UseFetchResult<T> {\n  const [data, setData] = useState<T | null>(null);\n  const [loading, setLoading] = useState(true);\n  const [error, setError] = useState<string | null>(null);\n\n  useEffect(() => {\n    let cancelled = false;\n    setLoading(true);\n    fetch(url)\n      .then(r => { if (!r.ok) throw new Error(r.statusText); return r.json(); })\n      .then(d => { if (!cancelled) { setData(d); setLoading(false); } })\n      .catch(e => { if (!cancelled) { setError(e.message); setLoading(false); } });\n    return () => { cancelled = true; };\n  }, [url]);\n\n  return { data, loading, error };\n}`;
+      } else {
+        content = `// Generated for: ${task}\n// Run the local backend or use Chrome with WebGPU for AI generation\n\nexport function Generated() {\n  return <div>Task: ${task}</div>;\n}`;
+      }
+      
+      fileSystem[fileName] = content;
+      saveFS(fileSystem);
+      
+      addTimelineStep('📄', 'Created ' + fileName, 'done');
+      document.getElementById('progressFill').style.width = '100%';
+      document.getElementById('statusProgress').textContent = '100';
+      term('Created ' + fileName + ' (' + content.length + ' chars)', 'ok');
+      
+      window.openFile(fileName);
+      renderTree();
+      renderTabs();
     }
 
     function stopTask() {
       isRunning = false;
-      if (demoTimer) { clearTimeout(demoTimer); demoTimer = null; }
       document.getElementById('agentStatus').textContent = 'Idle';
       document.getElementById('actionBtn').textContent = 'Run';
       document.getElementById('actionBtn').className = '';
@@ -401,7 +542,8 @@
       runTask(task);
     }
 
-    document.getElementById('newFileBtn').onclick = createFile;
+    // ===== Init =====
+    document.getElementById('newFileBtn').onclick = () => window.createFile();
     document.getElementById('actionBtn').onclick = function() {
       const t = document.getElementById('taskInput').value.trim();
       if (isRunning) { stopTask(); return; }
@@ -423,13 +565,15 @@
       this.classList.add('active');
       document.getElementById('sidebarTitle').textContent = 'Agent Timeline';
       document.getElementById('newFileBtn').style.display = 'none';
-      renderTimeline(-1);
     };
 
     renderTree();
     renderTabs();
     if (activeTab) renderEditor();
-    term('Ghost Developer ready. Create or edit files, then type a task.', 'info');
+    term('Ghost Developer loading in-browser AI...', 'info');
+
+    // Start AI initialization
+    initAI();
   </script>
 </body>
 </html>
