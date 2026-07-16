@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ghost Developer — AI Coding Assistant</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; background: #1e1e1e; color: #cccccc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; overflow: hidden; }
+    .container { display: flex; flex-direction: column; height: 100vh; }
+    .header { display: flex; align-items: center; height: 36px; background: #252526; border-bottom: 1px solid #3c3c3c; padding: 0 16px; font-size: 12px; gap: 8px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+    .dot.green { background: #4ec9b0; animation: pulse 2s ease-in-out infinite; }
+    .brand { color: #858585; }
+    .sep { color: #3c3c3c; margin: 0 8px; }
+    .label { color: #858585; }
+    .val { color: #4ec9b0; }
+    .path { color: #569cd6; }
+    @keyframes pulse { 0%,100%{opacity:.4} 50%{opacity:1} }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .main { display: flex; flex: 1; overflow: hidden; }
+    .activity { width: 48px; background: #333; display: flex; flex-direction: column; align-items: center; padding-top: 8px; gap: 4px; }
+    .activity button { width: 36px; height: 36px; border: none; background: transparent; color: #858585; font-size: 18px; border-radius: 4px; cursor: pointer; }
+    .activity button:hover { color: white; }
+    .activity button.active { color: white; position: relative; }
+    .activity button.active::before { content: ''; position: absolute; left: -6px; top: 4px; bottom: 4px; width: 2px; background: white; }
+    .activity .spacer { flex: 1; }
+    .activity .gear { color: #858585; font-size: 14px; margin-bottom: 8px; }
+    .sidebar { width: 240px; background: #252526; border-right: 1px solid #3c3c3c; display: flex; flex-direction: column; }
+    .sidebar-title { height: 36px; display: flex; align-items: center; padding: 0 16px; font-size: 11px; font-weight: 600; text-transform: uppercase; color: #858585; border-bottom: 1px solid #3c3c3c; letter-spacing: 0.5px; }
+    .sidebar-content { flex: 1; overflow-y: auto; padding: 8px 0; }
+    .file-item { display: flex; align-items: center; gap: 6px; padding: 4px 8px; cursor: pointer; font-size: 13px; color: #ccc; border-radius: 3px; margin: 0 8px; }
+    .file-item:hover { background: #2a2d2e; }
+    .file-item.active { background: #37373d; color: white; }
+    .folder-arrow { font-size: 10px; width: 16px; }
+    .indent-0 { padding-left: 8px; } .indent-1 { padding-left: 24px; } .indent-2 { padding-left: 40px; } .indent-3 { padding-left: 56px; }
+    .editor-area { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    .editor-tabs { display: flex; align-items: center; height: 36px; background: #252526; border-bottom: 1px solid #3c3c3c; padding: 0 4px; font-size: 12px; overflow-x: auto; }
+    .tab { padding: 0 16px; height: 100%; display: flex; align-items: center; border-right: 1px solid #3c3c3c; color: #858585; cursor: pointer; }
+    .tab.active { background: #1e1e1e; color: white; border-bottom: 1px solid #1e1e1e; margin-bottom: -1px; }
+    .editor { flex: 1; background: #1e1e1e; position: relative; overflow: hidden; }
+    .editor pre { padding: 16px; font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; font-size: 14px; line-height: 1.6; color: #d4d4d4; overflow: auto; height: 100%; }
+    .editor .line-num { color: #858585; display: inline-block; width: 32px; text-align: right; margin-right: 16px; user-select: none; }
+    .editor .kw { color: #569cd6; } .editor .fn { color: #dcdcaa; } .editor .str { color: #ce9178; } .editor .cm { color: #6a9955; } .editor .num { color: #b5cea8; } .editor .type { color: #4ec9b0; }
+    .timeline { width: 280px; background: #1e1e1e; border-left: 1px solid #3c3c3c; display: flex; flex-direction: column; }
+    .timeline-title { height: 36px; display: flex; align-items: center; padding: 0 16px; font-size: 11px; font-weight: 600; text-transform: uppercase; color: #858585; border-bottom: 1px solid #3c3c3c; }
+    .timeline-progress { padding: 12px 16px; border-bottom: 1px solid #3c3c3c; }
+    .timeline-stats { display: flex; justify-content: space-between; font-size: 11px; color: #858585; margin-bottom: 6px; }
+    .progress-bar { height: 6px; background: #3c3c3c; border-radius: 3px; overflow: hidden; }
+    .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #007acc, #4ec9b0); border-radius: 3px; transition: width 0.5s ease; }
+    .timeline-list { flex: 1; overflow-y: auto; padding: 8px 0; }
+    .tl-step { display: flex; align-items: flex-start; gap: 8px; padding: 6px 16px; animation: slideIn 0.3s ease-out; }
+    .tl-step:hover { background: #2a2d2e; }
+    .tl-icon { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
+    .tl-icon.done { background: rgba(0,122,204,0.2); }
+    .tl-icon.active { background: rgba(78,201,176,0.2); }
+    .tl-icon .spin-dot { width: 8px; height: 8px; border-radius: 50%; background: #4ec9b0; animation: pulse 2s ease-in-out infinite; display: block; }
+    .tl-text { font-size: 12px; color: #ccc; }
+    .tl-text.active { color: #4ec9b0; }
+    .tl-line { margin-left: 16px; border-left: 1px solid #3c3c3c; height: 8px; }
+    .terminal { height: 176px; background: #1e1e1e; border-top: 1px solid #3c3c3c; display: flex; flex-direction: column; }
+    .terminal-tabs { height: 32px; background: #252526; border-bottom: 1px solid #3c3c3c; display: flex; align-items: center; padding: 0 16px; gap: 12px; }
+    .terminal-tab { font-size: 11px; color: #858585; cursor: pointer; }
+    .terminal-tab.active { color: white; border-bottom: 2px solid #007acc; padding-bottom: 2px; }
+    .terminal-output { flex: 1; overflow-y: auto; padding: 12px; font-family: Consolas, monospace; font-size: 12px; line-height: 1.6; }
+    .terminal-line { color: #ccc; }
+    .terminal-line.cmd { color: #4ec9b0; }
+    .terminal-line.err { color: #f44747; }
+    .terminal-line.ok { color: #4ec9b0; }
+    .cursor::after { content: '|'; animation: blink 1s infinite; color: #007acc; }
+    .input-bar { background: #252526; border-top: 1px solid #3c3c3c; padding: 12px 16px; }
+    .input-row { display: flex; gap: 8px; max-width: 800px; margin: 0 auto; }
+    .input-row input { flex: 1; padding: 10px 12px; border-radius: 8px; border: 1px solid #4c4c4c; background: #3c3c3c; color: #ccc; font-size: 13px; outline: none; }
+    .input-row input:focus { border-color: #007acc; }
+    .input-row button { padding: 10px 24px; border-radius: 8px; border: none; background: #007acc; color: white; font-size: 13px; font-weight: 500; cursor: pointer; }
+    .input-row button:hover { background: #0098ff; }
+    .examples { display: flex; gap: 8px; max-width: 800px; margin: 8px auto 0; overflow-x: auto; padding-bottom: 4px; }
+    .examples button { font-size: 11px; padding: 4px 12px; border-radius: 12px; border: none; background: #333; color: #858585; cursor: pointer; white-space: nowrap; }
+    .examples button:hover { color: white; background: #3c3c3c; }
+    .status { height: 24px; background: #007acc; display: flex; align-items: center; padding: 0 16px; font-size: 11px; color: white; }
+    .status span { margin-right: 12px; }
+    .status .sep { color: rgba(255,255,255,0.5); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <span class="dot green"></span>
+      <span class="brand">GHOST DEVELOPER</span>
+      <span class="sep">|</span>
+      <span class="label">Agent Status:</span>
+      <span class="val" id="agentStatus">Running</span>
+      <span class="sep">|</span>
+      <span class="label">File:</span>
+      <span class="path" id="currentFile">src/pages/Login.tsx</span>
+    </div>
+    <div class="main">
+      <div class="activity">
+        <button class="active" title="Explorer">📁</button>
+        <button title="Search">🔍</button>
+        <button title="Agent Timeline">📋</button>
+        <div class="spacer"></div>
+        <div class="gear">⚙️</div>
+      </div>
+      <div class="sidebar">
+        <div class="sidebar-title">Explorer</div>
+        <div class="sidebar-content">
+          <div class="file-item indent-0 folder" onclick="toggleFolder(this)"><span class="folder-arrow">▼</span>📁 my-app</div>
+          <div class="file-item indent-1"><span class="folder-arrow" style="visibility:hidden">▶</span>📄 package.json</div>
+          <div class="file-item indent-1 folder" onclick="toggleFolder(this)"><span class="folder-arrow">▼</span>📁 src</div>
+          <div class="file-item indent-2 active" onclick="selectFile(this,'src/pages/Login.tsx')"><span class="folder-arrow" style="visibility:hidden">▶</span>📄 Login.tsx</div>
+          <div class="file-item indent-2" onclick="selectFile(this,'src/pages/Dashboard.tsx')"><span class="folder-arrow" style="visibility:hidden">▶</span>📄 Dashboard.tsx</div>
+          <div class="file-item indent-2" onclick="selectFile(this,'src/App.tsx')"><span class="folder-arrow" style="visibility:hidden">▶</span>📄 App.tsx</div>
+          <div class="file-item indent-1 folder" onclick="toggleFolder(this)"><span class="folder-arrow">▼</span>📁 lib</div>
+          <div class="file-item indent-2" onclick="selectFile(this,'src/lib/api.ts')"><span class="folder-arrow" style="visibility:hidden">▶</span>📄 api.ts</div>
+        </div>
+      </div>
+      <div class="editor-area">
+        <div class="editor-tabs">
+          <div class="tab active">Login.tsx</div>
+          <div class="tab">Dashboard.tsx</div>
+          <div class="tab">App.tsx</div>
+        </div>
+        <div class="editor">
+          <pre id="editorContent"></pre>
+        </div>
+      </div>
+      <div class="timeline" id="timelinePanel">
+        <div class="timeline-title">Agent Activity</div>
+        <div class="timeline-progress">
+          <div class="timeline-stats">
+            <span id="stepCount">0/31 steps</span>
+            <span id="elapsed">0s elapsed</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        </div>
+        <div class="timeline-list" id="timelineList"></div>
+      </div>
+    </div>
+    <div class="terminal">
+      <div class="terminal-tabs">
+        <span class="terminal-tab">PROBLEMS</span>
+        <span class="terminal-tab">OUTPUT</span>
+        <span class="terminal-tab active">TERMINAL</span>
+      </div>
+      <div class="terminal-output" id="terminalOutput">
+        <div class="terminal-line">Ghost Developer Terminal</div>
+        <div class="terminal-line">------------------------------</div>
+        <div class="terminal-line cmd">$ Ready. Starting demo...</div>
+      </div>
+    </div>
+    <div class="input-bar">
+      <div class="input-row">
+        <input type="text" placeholder="Describe a coding task..." id="taskInput" disabled value="Building demo...">
+        <button id="actionBtn" disabled>Run</button>
+      </div>
+      <div class="examples">
+        <button>Create a login page</button>
+        <button>Fix authentication error</button>
+        <button>Add user dashboard</button>
+        <button>Implement API client</button>
+        <button>Add error handling</button>
+      </div>
+    </div>
+    <div class="status">
+      <span>● Ghost Developer</span>
+      <span class="sep">|</span>
+      <span>Progress: <span id="statusProgress">0</span>%</span>
+      <span class="sep">|</span>
+      <span>Elapsed: <span id="statusElapsed">0</span>s</span>
+      <span id="fileStatus" class="sep" style="display:none">|</span>
+      <span id="filesModified" style="display:none"></span>
+      <div style="flex:1"></div>
+      <span id="statusFile"></span>
+    </div>
+  </div>
+
+  <script>
+    const FILES = {
+      'src/pages/Login.tsx': [
+        'import { useState } from "react";',
+        'import { useNavigate } from "react-router-dom";',
+        '',
+        'export function LoginPage() {',
+        '  const [email, setEmail] = useState<string>("");',
+        '  const [password, setPassword] = useState<string>("");',
+        '  const navigate = useNavigate();',
+        '',
+        '  const handleSubmit = (e: React.FormEvent) => {',
+        '    e.preventDefault();',
+        '    navigate("/");',
+        '  };',
+        '',
+        '  return (',
+        '    <div className="min-h-screen flex items-center justify-center bg-gray-50">',
+        '      <form onSubmit={handleSubmit} className="p-8 bg-white rounded shadow-md w-96">',
+        '        <h1 className="text-2xl font-bold mb-6">Sign In</h1>',
+        '        <input type="email" placeholder="Email" value={email}',
+        '          onChange={(e) => setEmail(e.target.value)}',
+        '          className="w-full p-3 border rounded mb-4" />',
+        '        <input type="password" placeholder="Password" value={password}',
+        '          onChange={(e) => setPassword(e.target.value)}',
+        '          className="w-full p-3 border rounded mb-6" />',
+        '        <button type="submit" className="w-full p-3 bg-blue-600 text-white rounded">',
+        '          Sign In',
+        '        </button>',
+        '      </form>',
+        '    </div>',
+        '  );',
+        '}',
+      ],
+      'src/pages/Dashboard.tsx': [
+        'import { useState, useEffect } from "react";',
+        '',
+        'export function Dashboard() {',
+        '  const [users, setUsers] = useState([',
+        '    { id: "1", name: "Alice", email: "alice@example.com" },',
+        '    { id: "2", name: "Bob", email: "bob@example.com" },',
+        '  ]);',
+        '',
+        '  return (',
+        '    <div className="p-8">',
+        '      <h1 className="text-3xl font-bold mb-6">Dashboard</h1>',
+        '      <div className="grid gap-4">',
+        '        {users.map((user) => (',
+        '          <div key={user.id} className="p-4 border rounded-lg shadow-sm">',
+        '            <h3 className="font-semibold">{user.name}</h3>',
+        '            <p className="text-gray-600">{user.email}</p>',
+        '          </div>',
+        '        ))}',
+        '      </div>',
+        '    </div>',
+        '  );',
+        '}',
+      ],
+      'src/App.tsx': [
+        'import { BrowserRouter, Routes, Route } from "react-router-dom";',
+        'import { LoginPage } from "./pages/Login";',
+        'import { Dashboard } from "./pages/Dashboard";',
+        '',
+        'function App() {',
+        '  return (',
+        '    <BrowserRouter>',
+        '      <Routes>',
+        '        <Route path="/login" element={<LoginPage />} />',
+        '        <Route path="/" element={<Dashboard />} />',
+        '      </Routes>',
+        '    </BrowserRouter>',
+        '  );',
+        '}',
+        '',
+        'export default App;',
+      ],
+      'src/lib/api.ts': [
+        'const BASE = import.meta.env.VITE_API_URL || "http://localhost:4000";',
+        '',
+        'async function request<T>(path: string, opts?: RequestInit): Promise<T> {',
+        '  const res = await fetch(BASE + path, {',
+        '    headers: { "Content-Type": "application/json" },',
+        '    ...opts,',
+        '  });',
+        '  if (!res.ok) throw new Error(await res.text());',
+        '  return res.json();',
+        '}',
+        '',
+        'export const api = {',
+        '  login: (email: string, password: string) =>',
+        '    request<{ token: string }>("/api/login", {',
+        '      method: "POST",',
+        '      body: JSON.stringify({ email, password }),',
+        '    }),',
+        '  getUsers: () => request<{ id: string; name: string; email: string }[]>("/api/users"),',
+        '};',
+      ],
+    };
+
+    const TIMELINE_STEPS = [
+      { icon: "🔍", label: "Repository Scan" },
+      { icon: "📂", label: "Scanning project" },
+      { icon: "✅", label: "Scan complete" },
+      { icon: "📖", label: "Reading package.json" },
+      { icon: "📖", label: "Reading Login.tsx" },
+      { icon: "✏️", label: "Editing Login.tsx" },
+      { icon: "📄", label: "Creating Header.tsx" },
+      { icon: "📖", label: "Reading api.ts" },
+      { icon: "📦", label: "Installing packages" },
+      { icon: "📦", label: "Installing react" },
+      { icon: "📦", label: "Installing express" },
+      { icon: "✅", label: "Packages installed" },
+      { icon: "💻", label: "added 1,234 packages" },
+      { icon: "🔨", label: "Building" },
+      { icon: "🔨", label: "TypeScript compilation" },
+      { icon: "🔨", label: "Bundling" },
+      { icon: "❌", label: "Build error" },
+      { icon: "🔧", label: "Fixing errors" },
+      { icon: "💻", label: "Fix applied" },
+      { icon: "🔨", label: "Rebuilding" },
+      { icon: "✅", label: "Build success" },
+      { icon: "🧪", label: "Running tests" },
+      { icon: "📊", label: "Tests: 8 passed" },
+      { icon: "🎉", label: "Completed" },
+    ];
+
+    const TERMINAL_LINES = [
+      { text: "Ghost Developer Terminal", type: "info" },
+      { text: "------------------------------", type: "info" },
+      { text: "$ npm install", type: "cmd" },
+      { text: "added 1,234 packages in 12s", type: "ok" },
+      { text: "$ npm run build", type: "cmd" },
+      { text: "TypeScript compilation...", type: "info" },
+      { text: "ERROR in src/Login.tsx:5 - Property 'email' does not exist", type: "err" },
+      { text: "Fix applied: added type annotation to useState", type: "ok" },
+      { text: "Build succeeded in 4.2s", type: "ok" },
+      { text: "$ npm test", type: "cmd" },
+      { text: "Tests: 8 passed, 8 total (1.2s)", type: "ok" },
+      { text: "Task complete. All checks passed.", type: "ok" },
+    ];
+
+    const COLOR_MAP = {
+      'import': 'kw', 'const': 'kw', 'let': 'kw', 'var': 'kw', 'function': 'kw',
+      'export': 'kw', 'return': 'kw', 'from': 'kw', 'async': 'kw', 'await': 'kw',
+      'useState': 'fn', 'useEffect': 'fn', 'useNavigate': 'fn', 'useCallback': 'fn',
+      'useRef': 'fn', 'useContext': 'fn', 'createContext': 'fn',
+      'string': 'type', 'number': 'type', 'boolean': 'type', 'void': 'type',
+      'React': 'type', 'FormEvent': 'type', 'FC': 'type',
+    };
+
+    let currentFile = 'src/pages/Login.tsx';
+    let currentStep = 0;
+    let elapsed = 0;
+
+    function highlight(line) {
+      return line.replace(/(["'`].*?["'`])/g, '<span class="str">$1</span>')
+        .replace(/\/\/.*$/g, '<span class="cm">$&</span>')
+        .replace(/\b(\d+\.?\d*)\b/g, '<span class="num">$1</span>')
+        .replace(/\b(import|const|let|var|function|export|return|from|async|await|new|type|interface|extends|class)\b/g, '<span class="kw">$1</span>')
+        .replace(/\b(string|number|boolean|void|React|FormEvent|FC|useState|useEffect|useNavigate|useRef|useCallback|useContext|createContext)\b/g, (m) => {
+          if (m === 'string' || m === 'number' || m === 'boolean' || m === 'void' || m === 'React' || m === 'FormEvent' || m === 'FC') return `<span class="type">${m}</span>`;
+          return `<span class="fn">${m}</span>`;
+        });
+    }
+
+    function renderFile(path) {
+      const lines = FILES[path] || ['// Select a file'];
+      const el = document.getElementById('editorContent');
+      el.innerHTML = lines.map((l, i) =>
+        `<span class="line-num">${i + 1}</span>${highlight(l)}`
+      ).join('\n');
+    }
+
+    function selectFile(el, path) {
+      document.querySelectorAll('.file-item.active').forEach(f => f.classList.remove('active'));
+      el.classList.add('active');
+      currentFile = path;
+      renderFile(path);
+      document.getElementById('currentFile').textContent = path;
+    }
+
+    function toggleFolder(el) {
+      const arrow = el.querySelector('.folder-arrow');
+      arrow.textContent = arrow.textContent === '▼' ? '▶' : '▼';
+      let next = el.nextElementSibling;
+      while (next && next.classList.contains('indent-' + (parseInt(el.classList[1].split('-')[1]) + 1))) {
+        next.style.display = next.style.display === 'none' ? '' : 'none';
+        next = next.nextElementSibling;
+      }
+    }
+
+    function addTerminalLine(text, type = 'info') {
+      const el = document.getElementById('terminalOutput');
+      const div = document.createElement('div');
+      div.className = 'terminal-line ' + (type === 'cmd' ? 'cmd' : type === 'err' ? 'err' : type === 'ok' ? 'ok' : '');
+      div.textContent = text;
+      el.appendChild(div);
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function addTimelineStep(icon, label, active = false) {
+      const el = document.getElementById('timelineList');
+      const step = document.createElement('div');
+      step.className = 'tl-step';
+      step.innerHTML = `<div class="tl-icon ${active ? 'active' : 'done'}">${active ? '<span class="spin-dot"></span>' : icon}</div><div class="tl-text ${active ? 'active' : ''}">${label}</div>`;
+      el.appendChild(step);
+      if (active) step.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    let prevStep = -1;
+    let tlIdx = 0;
+
+    function demoLoop() {
+      if (currentStep >= 60) {
+        document.getElementById('agentStatus').textContent = 'Completed';
+        document.getElementById('actionBtn').textContent = 'Run';
+        document.getElementById('actionBtn').disabled = false;
+        document.getElementById('progressFill').style.width = '100%';
+        document.getElementById('statusProgress').textContent = '100';
+        return;
+      }
+
+      elapsed = Math.floor(currentStep / 2);
+      document.getElementById('elapsed').textContent = elapsed + 's elapsed';
+      document.getElementById('statusElapsed').textContent = elapsed;
+
+      const stepIdx = Math.floor(currentStep / 2.5);
+      if (stepIdx < TIMELINE_STEPS.length && stepIdx !== prevStep) {
+        prevStep = stepIdx;
+        document.querySelectorAll('.tl-step').forEach(s => s.remove());
+        for (let i = 0; i <= stepIdx; i++) {
+          const isActive = i === stepIdx;
+          addTimelineStep(TIMELINE_STEPS[i].icon, TIMELINE_STEPS[i].label, isActive);
+        }
+        tlIdx++;
+      }
+
+      const progress = Math.min(Math.floor((currentStep / 60) * 100), 99);
+      document.getElementById('progressFill').style.width = progress + '%';
+      document.getElementById('stepCount').textContent = `${Math.min(stepIdx + 1, TIMELINE_STEPS.length)}/${TIMELINE_STEPS.length} steps`;
+      document.getElementById('statusProgress').textContent = progress;
+
+      if (currentStep % 5 === 0 && tlIdx < TERMINAL_LINES.length) {
+        const line = TERMINAL_LINES[Math.min(tlIdx, TERMINAL_LINES.length - 1)];
+        addTerminalLine(line.text, line.type);
+        tlIdx++;
+      }
+
+      currentStep++;
+      setTimeout(demoLoop, 600);
+    }
+
+    renderFile('src/pages/Login.tsx');
+    addTerminalLine('$ Ready. Starting demo...', 'cmd');
+    setTimeout(demoLoop, 1000);
+  </script>
+</body>
+</html>
