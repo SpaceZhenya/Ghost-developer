@@ -429,8 +429,30 @@
       setTimeout(demoLoop, 600);
     }
 
+    function resetDemo() {
+      const tl = document.getElementById('timelineList');
+      const term = document.getElementById('terminalOutput');
+      if (tl) tl.innerHTML = '';
+      if (term) term.innerHTML = '';
+      currentStep = 0;
+      elapsed = 0;
+      prevStep = -1;
+      tlIdx = 0;
+      document.getElementById('agentStatus').textContent = 'Running';
+      document.getElementById('actionBtn').textContent = 'Running...';
+      document.getElementById('actionBtn').disabled = true;
+      document.getElementById('progressFill').style.width = '0%';
+      document.getElementById('statusProgress').textContent = '0';
+      document.getElementById('stepCount').textContent = `0/${TIMELINE_STEPS.length} steps`;
+      document.getElementById('elapsed').textContent = '0s elapsed';
+      document.getElementById('statusElapsed').textContent = '0';
+      addTerminalLine('$ Task started. Running demo...', 'cmd');
+      demoLoop();
+    }
+
+    document.getElementById('actionBtn').onclick = resetDemo;
+
     renderFile('src/pages/Login.tsx');
-    addTerminalLine('$ Ready. Starting demo...', 'cmd');
     setTimeout(demoLoop, 1000);
   </script>
 </body>
