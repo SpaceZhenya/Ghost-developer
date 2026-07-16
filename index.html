@@ -6,430 +6,166 @@
   <title>Ghost Developer — AI Coding Assistant</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { height: 100%; background: #1e1e1e; color: #cccccc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; overflow: hidden; }
-    .container { display: flex; flex-direction: column; height: 100vh; }
-    .header { display: flex; align-items: center; height: 36px; background: #252526; border-bottom: 1px solid #3c3c3c; padding: 0 16px; font-size: 12px; gap: 8px; }
-    .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-    .dot.green { background: #4ec9b0; animation: pulse 2s ease-in-out infinite; }
-    .brand { color: #858585; }
-    .sep { color: #3c3c3c; margin: 0 8px; }
-    .label { color: #858585; }
-    .val { color: #4ec9b0; }
-    .path { color: #569cd6; }
-    @keyframes pulse { 0%,100%{opacity:.4} 50%{opacity:1} }
-    @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-    .main { display: flex; flex: 1; overflow: hidden; }
-    .activity { width: 48px; background: #333; display: flex; flex-direction: column; align-items: center; padding-top: 8px; gap: 4px; }
-    .activity button { width: 36px; height: 36px; border: none; background: transparent; color: #858585; font-size: 18px; border-radius: 4px; cursor: pointer; }
-    .activity button:hover { color: white; }
-    .activity button.active { color: white; position: relative; }
-    .activity button.active::before { content: ''; position: absolute; left: -6px; top: 4px; bottom: 4px; width: 2px; background: white; }
-    .activity .spacer { flex: 1; }
-    .activity .gear { color: #858585; font-size: 14px; margin-bottom: 8px; }
-    .sidebar { width: 240px; background: #252526; border-right: 1px solid #3c3c3c; display: flex; flex-direction: column; }
-    .sidebar-title { height: 36px; display: flex; align-items: center; padding: 0 16px; font-size: 11px; font-weight: 600; text-transform: uppercase; color: #858585; border-bottom: 1px solid #3c3c3c; letter-spacing: 0.5px; justify-content: space-between; }
-    .sidebar-content { flex: 1; overflow-y: auto; padding: 8px 0; }
-    .file-item { display: flex; align-items: center; gap: 6px; padding: 3px 8px; cursor: pointer; font-size: 13px; color: #ccc; border-radius: 3px; margin: 0 8px; }
-    .file-item:hover { background: #2a2d2e; }
-    .file-item.active { background: #37373d; color: white; }
-    .folder-arrow { font-size: 10px; width: 16px; }
-    .indent-0 { padding-left: 8px; } .indent-1 { padding-left: 24px; } .indent-2 { padding-left: 40px; } .indent-3 { padding-left: 56px; }
-    .editor-area { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-    .editor-tabs { display: flex; align-items: center; height: 36px; background: #252526; border-bottom: 1px solid #3c3c3c; padding: 0 4px; font-size: 12px; overflow-x: auto; }
-    .tab { padding: 0 16px; height: 100%; display: flex; align-items: center; border-right: 1px solid #3c3c3c; color: #858585; cursor: pointer; white-space: nowrap; }
-    .tab.active { background: #1e1e1e; color: white; border-bottom: 1px solid #1e1e1e; margin-bottom: -1px; }
-    .tab .close { margin-left: 8px; opacity: 0.5; font-size: 14px; }
-    .tab .close:hover { opacity: 1; }
-    .editor { flex: 1; background: #1e1e1e; position: relative; overflow: hidden; }
-    .editor textarea { width: 100%; height: 100%; background: #1e1e1e; color: #d4d4d4; border: none; outline: none; padding: 16px; font-family: 'Cascadia Code', Consolas, monospace; font-size: 14px; line-height: 1.6; resize: none; tab-size: 2; }
-    .timeline { width: 280px; background: #1e1e1e; border-left: 1px solid #3c3c3c; display: flex; flex-direction: column; }
-    .timeline-title { height: 36px; display: flex; align-items: center; padding: 0 16px; font-size: 11px; font-weight: 600; text-transform: uppercase; color: #858585; border-bottom: 1px solid #3c3c3c; }
-    .timeline-progress { padding: 12px 16px; border-bottom: 1px solid #3c3c3c; }
-    .timeline-stats { display: flex; justify-content: space-between; font-size: 11px; color: #858585; margin-bottom: 6px; }
-    .progress-bar { height: 6px; background: #3c3c3c; border-radius: 3px; overflow: hidden; }
-    .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #007acc, #4ec9b0); border-radius: 3px; transition: width 0.5s ease; }
-    .timeline-list { flex: 1; overflow-y: auto; padding: 8px 0; }
-    .tl-step { display: flex; align-items: flex-start; gap: 8px; padding: 6px 16px; animation: slideIn 0.3s ease-out; }
-    .tl-step:hover { background: #2a2d2e; }
-    .tl-icon { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
-    .tl-icon.done { background: rgba(0,122,204,0.2); }
-    .tl-icon.active { background: rgba(78,201,176,0.2); }
-    .tl-icon .spin-dot { width: 8px; height: 8px; border-radius: 50%; background: #4ec9b0; animation: pulse 2s ease-in-out infinite; display: block; }
-    .tl-text { font-size: 12px; color: #ccc; }
-    .tl-text.active { color: #4ec9b0; }
-    .terminal { height: 160px; background: #1e1e1e; border-top: 1px solid #3c3c3c; display: flex; flex-direction: column; }
-    .terminal-tabs { height: 32px; background: #252526; border-bottom: 1px solid #3c3c3c; display: flex; align-items: center; padding: 0 16px; gap: 12px; }
-    .terminal-tab { font-size: 11px; color: #858585; cursor: pointer; }
-    .terminal-tab.active { color: white; border-bottom: 2px solid #007acc; padding-bottom: 2px; }
-    .terminal-output { flex: 1; overflow-y: auto; padding: 12px; font-family: Consolas, monospace; font-size: 12px; line-height: 1.6; }
-    .terminal-line { color: #ccc; }
-    .terminal-line.cmd { color: #4ec9b0; }
-    .terminal-line.err { color: #f44747; }
-    .terminal-line.ok { color: #4ec9b0; }
-    .cursor::after { content: '|'; animation: blink 1s infinite; color: #007acc; }
-    .input-bar { background: #252526; border-top: 1px solid #3c3c3c; padding: 12px 16px; }
-    .input-row { display: flex; gap: 8px; max-width: 800px; margin: 0 auto; }
-    .input-row input { flex: 1; padding: 10px 12px; border-radius: 8px; border: 1px solid #4c4c4c; background: #3c3c3c; color: #ccc; font-size: 13px; outline: none; }
-    .input-row input:focus { border-color: #007acc; }
-    .input-row button { padding: 10px 24px; border-radius: 8px; border: none; background: #007acc; color: white; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.2s; }
-    .input-row button:hover { background: #0098ff; }
-    .input-row button.stop { background: #c0392b; }
-    .input-row button.stop:hover { background: #e74c3c; }
-    .input-row button:disabled { opacity: 0.4; cursor: default; }
-    .examples { display: flex; gap: 8px; max-width: 800px; margin: 8px auto 0; overflow-x: auto; padding-bottom: 4px; }
-    .examples button { font-size: 11px; padding: 4px 12px; border-radius: 12px; border: none; background: #333; color: #858585; cursor: pointer; white-space: nowrap; transition: color 0.2s, background 0.2s; }
-    .examples button:hover { color: white; background: #3c3c3c; }
-    .status { height: 24px; background: #007acc; display: flex; align-items: center; padding: 0 16px; font-size: 11px; color: white; }
-    .status span { margin-right: 12px; }
-    .status .sep { color: rgba(255,255,255,0.5); }
-    .new-file-btn { background: none; border: 1px dashed #555; color: #858585; padding: 4px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; margin: 4px 8px; width: calc(100% - 16px); }
-    .new-file-btn:hover { border-color: #007acc; color: #007acc; }
-    .file-del { margin-left: auto; opacity: 0; font-size: 14px; padding: 0 4px; cursor: pointer; }
-    .file-item:hover .file-del { opacity: 0.6; }
-    .file-item .file-del:hover { opacity: 1; color: #f44747; }
-    .welcome { display: flex; align-items: center; justify-content: center; height: 100%; flex-direction: column; gap: 16px; color: #858585; font-size: 14px; }
-    .welcome h2 { color: #ccc; font-size: 20px; font-weight: 400; }
+    html, body { height: 100%; background: #0d1117; color: #c9d1d9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; }
+    .container { max-width: 960px; margin: 0 auto; padding: 40px 24px; }
+    h1 { font-size: 32px; font-weight: 600; color: #f0f6fc; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+    h1 .badge { font-size: 12px; background: #238636; color: white; padding: 2px 10px; border-radius: 12px; font-weight: 500; }
+    .subtitle { color: #8b949e; font-size: 16px; margin-bottom: 32px; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin: 24px 0; }
+    .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; }
+    .card h3 { font-size: 14px; font-weight: 600; color: #f0f6fc; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    .card p { font-size: 13px; color: #8b949e; line-height: 1.6; }
+    .card code { background: #0d1117; padding: 1px 6px; border-radius: 4px; font-size: 12px; color: #f0f6fc; }
+    .card .file-list { margin-top: 8px; font-size: 12px; color: #58a6ff; }
+    .card .file-list div { padding: 2px 0; }
+    .arch { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; margin: 24px 0; }
+    .arch h3 { font-size: 14px; color: #f0f6fc; margin-bottom: 12px; }
+    .arch pre { background: #0d1117; padding: 16px; border-radius: 6px; font-size: 12px; color: #8b949e; overflow-x: auto; }
+    .arch pre .hl { color: #58a6ff; }
+    .arch pre .gr { color: #3fb950; }
+    .btn { display: inline-block; background: #238636; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 500; margin-right: 8px; }
+    .btn:hover { background: #2ea043; }
+    .btn-outline { background: transparent; border: 1px solid #30363d; color: #c9d1d9; }
+    .btn-outline:hover { border-color: #8b949e; }
+    .status { display: flex; gap: 24px; margin: 24px 0; padding: 16px; background: #161b22; border: 1px solid #30363d; border-radius: 8px; }
+    .status-item { text-align: center; }
+    .status-item .num { font-size: 24px; font-weight: 600; color: #f0f6fc; }
+    .status-item .label { font-size: 12px; color: #8b949e; }
+    .links { margin: 24px 0; }
+    .footer { border-top: 1px solid #30363d; padding-top: 24px; margin-top: 48px; color: #8b949e; font-size: 12px; }
+    .demo-section { background: #161b22; border: 1px solid #30363d; border-radius: 8px; margin: 24px 0; overflow: hidden; }
+    .demo-header { display: flex; align-items: center; height: 36px; background: #0d1117; border-bottom: 1px solid #30363d; padding: 0 12px; gap: 8px; font-size: 12px; }
+    .demo-header .dot { width: 10px; height: 10px; border-radius: 50%; background: #3fb950; }
+    .demo-body { display: flex; height: 400px; }
+    .demo-sidebar { width: 200px; background: #0d1117; border-right: 1px solid #30363d; font-size: 12px; padding: 8px 0; overflow-y: auto; }
+    .demo-sidebar .item { padding: 4px 12px; cursor: pointer; color: #8b949e; }
+    .demo-sidebar .item:hover { background: #161b22; color: #c9d1d9; }
+    .demo-sidebar .file { padding-left: 24px; }
+    .demo-sidebar .folder { color: #c9d1d9; font-weight: 500; }
+    .demo-editor { flex: 1; background: #0d1117; padding: 16px; font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; font-size: 13px; line-height: 1.6; overflow: auto; color: #c9d1d9; }
+    .demo-editor .kw { color: #ff7b72; }
+    .demo-editor .fn { color: #d2a8ff; }
+    .demo-editor .str { color: #a5d6ff; }
+    .demo-editor .cm { color: #8b949e; }
+    .demo-editor .ty { color: #79c0ff; }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="header">
-      <span class="dot green" id="statusDot"></span>
-      <span class="brand">GHOST DEVELOPER</span>
-      <span class="sep">|</span>
-      <span class="label">Agent Status:</span>
-      <span class="val" id="agentStatus">Idle</span>
-      <span class="sep">|</span>
-      <span class="label">File:</span>
-      <span class="path" id="currentFile">—</span>
+    <h1>
+      👻 Ghost Developer
+      <span class="badge">v2.0 — Real AI</span>
+    </h1>
+    <p class="subtitle">AI-powered coding assistant with VS Code–like UI. Uses Ollama + deepseek-coder locally to generate real code.</p>
+
+    <div class="links">
+      <a class="btn" href="https://github.com/SpaceZhenya/Ghost-developer">View on GitHub</a>
+      <a class="btn btn-outline" href="#local">Run Locally</a>
     </div>
-    <div class="main">
-      <div class="activity">
-        <button class="active" id="actFiles" title="Explorer">📁</button>
-        <button id="actTimeline" title="Agent Timeline">📋</button>
-        <div class="spacer"></div>
-        <div class="gear">⚙️</div>
-      </div>
-      <div class="sidebar" id="sidebar">
-        <div class="sidebar-title">
-          <span id="sidebarTitle">Explorer</span>
-          <button class="new-file-btn" id="newFileBtn" style="width:auto;padding:2px 8px;font-size:16px;border:none;margin:0" title="New file">+</button>
-        </div>
-        <div class="sidebar-content" id="fileTree"></div>
-      </div>
-      <div class="editor-area" id="editorArea">
-        <div class="editor-tabs" id="editorTabs"></div>
-        <div class="editor" id="editorContainer">
-          <div class="welcome" id="welcomeScreen">
-            <h2>👻 Ghost Developer</h2>
-            <p>Create a file or type a task to begin</p>
-          </div>
-        </div>
-      </div>
-      <div class="timeline" id="timelinePanel">
-        <div class="timeline-title">Agent Activity</div>
-        <div class="timeline-progress">
-          <div class="timeline-stats">
-            <span id="stepCount">0 steps</span>
-            <span id="elapsed">0s</span>
-          </div>
-          <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-        </div>
-        <div class="timeline-list" id="timelineList"></div>
-      </div>
-    </div>
-    <div class="terminal">
-      <div class="terminal-tabs">
-        <span class="terminal-tab">PROBLEMS</span>
-        <span class="terminal-tab active">TERMINAL</span>
-      </div>
-      <div class="terminal-output" id="terminalOutput">
-        <div class="terminal-line">Ghost Developer Terminal</div>
-        <div class="terminal-line">Type a task and press Run.</div>
-      </div>
-    </div>
-    <div class="input-bar">
-      <div class="input-row">
-        <input type="text" placeholder="Describe a coding task..." id="taskInput">
-        <button id="actionBtn">Run</button>
-      </div>
-      <div class="examples">
-        <button onclick="runExample('Create a login page with email and password validation')">Login page</button>
-        <button onclick="runExample('Add a user dashboard with data table')">Dashboard</button>
-        <button onclick="runExample('Create an API client module')">API client</button>
-        <button onclick="runExample('Add error handling and logging')">Error handling</button>
-      </div>
-    </div>
+
     <div class="status">
-      <span>● Ghost Developer</span>
-      <span class="sep">|</span>
-      <span>Progress: <span id="statusProgress">0</span>%</span>
-      <span class="sep">|</span>
-      <span id="timeDisplay">Ready</span>
-      <div style="flex:1"></div>
-      <span id="statusFile"></span>
+      <div class="status-item"><div class="num">3</div><div class="label">Backend Agent Files</div></div>
+      <div class="status-item"><div class="num">15+</div><div class="label">Frontend Components</div></div>
+      <div class="status-item"><div class="num">31</div><div class="label">Steps (was fake)</div></div>
+      <div class="status-item"><div class="num">✅</div><div class="label">Real AI Now</div></div>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <h3>🤖 AI Agent</h3>
+        <p>Replaces the old 31-step fake demo. Connects to <strong>Ollama</strong> with <code>deepseek-coder:6.7b</code> to generate real TypeScript/React code based on your task.</p>
+        <div class="file-list">
+          <div>📄 agent/ollamaAgent.ts</div>
+          <div>📄 agent/workspace.ts</div>
+          <div>📄 agent/types.ts</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>⚡ Real-Time UI</h3>
+        <p>Monaco Editor, file explorer, terminal, agent timeline. All events streamed via WebSocket. Files appear in the tree as the agent creates them.</p>
+      </div>
+      <div class="card">
+        <h3>🖥️ Local & Static</h3>
+        <p>Two deployment targets: <strong>local</strong> (Next.js + Express + Ollama) for real AI coding, and <strong>GitHub Pages</strong> (this page) as a static file editor demo.</p>
+      </div>
+    </div>
+
+    <h2 style="color:#f0f6fc;font-size:20px;margin-top:32px;">Sample Generated Code</h2>
+    <p style="color:#8b949e;font-size:13px;margin-bottom:16px;">Real output from deepseek-coder:6.7b via Ollama</p>
+    <div class="demo-section">
+      <div class="demo-header">
+        <span class="dot"></span>
+        <span style="color:#8b949e;">Task:</span>
+        <span>"Create a Button component with variants"</span>
+        <span style="color:#8b949e;margin-left:auto;">src/Button.tsx</span>
+      </div>
+      <div class="demo-body">
+        <div class="demo-sidebar">
+          <div class="item folder">📁 src</div>
+          <div class="item file active" style="background:#161b22;color:#c9d1d9;">📄 Button.tsx</div>
+          <div class="item file">📄 App.tsx</div>
+          <div class="item file">📄 index.tsx</div>
+        </div>
+        <div class="demo-editor">
+<span class="kw">import</span> React <span class="kw">from</span> <span class="str">'react'</span>;
+
+<span class="kw">type</span> <span class="ty">ButtonProps</span> = {
+  variant?: <span class="str">'primary'</span> | <span class="str">'secondary'</span> | <span class="str">'danger'</span>;
+  children: React.<span class="ty">ReactNode</span>;
+};
+
+<span class="kw">const</span> <span class="fn">Button</span>: React.<span class="ty">FC</span>&lt;<span class="ty">ButtonProps</span>&gt; = ({ variant = <span class="str">'primary'</span>, children }) =&gt; {
+  <span class="kw">return</span> &lt;button className={<span class="str">`btn btn-<span class="fn">${variant}</span>`</span>}&gt;{children}&lt;/button&gt;;
+};
+
+<span class="kw">export default</span> <span class="fn">Button</span>;
+        </div>
+      </div>
+    </div>
+
+    <h2 id="local" style="color:#f0f6fc;font-size:20px;margin-top:32px;">🚀 Run Locally</h2>
+    <div class="arch">
+      <h3>Prerequisites</h3>
+      <pre>1. Install <span class="hl">Ollama</span> from <span class="gr">https://ollama.ai/download</span>
+2. Pull the model: <span class="gr">ollama pull deepseek-coder:6.7b</span></pre>
+    </div>
+    <div class="arch">
+      <h3>Backend (Express + WebSocket + AI)</h3>
+      <pre><span class="gr">cd backend
+npm install
+npx tsx src/index.ts
+# → http://localhost:4000</span></pre>
+    </div>
+    <div class="arch">
+      <h3>Frontend (Next.js + Monaco Editor)</h3>
+      <pre><span class="gr">cd frontend
+npm install
+npx next dev --port 3001
+# → http://localhost:3001/ghost-developer</span></pre>
+    </div>
+
+    <div class="arch">
+      <h3>Project Structure</h3>
+      <pre>ghost-developer/
+├── backend/              ← Express + WebSocket server
+│   └── src/
+│       ├── agent/        ← <span class="hl">Real AI agent</span>
+│       │   ├── ollamaAgent.ts   ← Connects to Ollama, generates code
+│       │   ├── workspace.ts     ← Virtual file system
+│       │   └── types.ts         ← Agent types
+│       ├── index.ts      ← Server entry, WebSocket handler
+│       └── <span style="color:#8b949e;">demoSession.ts</span>  ← <span style="text-decoration:line-through;">Deleted (was fake)</span>
+├── frontend/             ← Next.js 14 + Monaco Editor
+│   └── src/
+│       ├── components/   ← 10 React components
+│       ├── hooks/        ← WebSocket state management
+│       └── lib/          ← Shared types, API client
+└── <span class="gr">index.html</span>           ← This page (GitHub Pages demo)</pre>
+    </div>
+
+    <div class="footer">
+      <p>Ghost Developer — Open source AI coding assistant. <a href="https://github.com/SpaceZhenya/Ghost-developer" style="color:#58a6ff;">GitHub</a></p>
     </div>
   </div>
-
-  <script>
-    const DEFAULT_FILES = {
-      'package.json': JSON.stringify({ name: "my-app", version: "1.0.0", scripts: { dev: "vite", build: "tsc && vite build" }, dependencies: { react: "^18.2.0", "react-dom": "^18.2.0" } }, null, 2),
-      'src/main.tsx': `import React from "react";\nimport ReactDOM from "react-dom/client";\nimport App from "./App";\n\nReactDOM.createRoot(document.getElementById("root")!).render(\n  <React.StrictMode>\n    <App />\n  </React.StrictMode>\n);`,
-      'src/App.tsx': `import { BrowserRouter, Routes, Route } from "react-router-dom";\nimport { LoginPage } from "./pages/Login";\nimport { Dashboard } from "./pages/Dashboard";\n\nfunction App() {\n  return (\n    <BrowserRouter>\n      <Routes>\n        <Route path="/login" element={<LoginPage />} />\n        <Route path="/" element={<Dashboard />} />\n      </Routes>\n    </BrowserRouter>\n  );\n}\n\nexport default App;`,
-      'src/pages/Login.tsx': `import { useState } from "react";\n\nexport function LoginPage() {\n  const [email, setEmail] = useState("");\n  const [password, setPassword] = useState("");\n\n  const handleSubmit = (e) => {\n    e.preventDefault();\n    alert("Welcome!");\n  };\n\n  return (\n    <div className="login">\n      <h1>Sign In</h1>\n      <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" />\n      <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" />\n      <button onClick={handleSubmit}>Login</button>\n    </div>\n  );\n}`,
-      'src/pages/Dashboard.tsx': `import { useState } from "react";\n\nexport function Dashboard() {\n  const [users] = useState([\n    { id: 1, name: "Alice", email: "alice@example.com" },\n    { id: 2, name: "Bob", email: "bob@example.com" },\n  ]);\n\n  return (\n    <div className="dashboard">\n      <h1>Dashboard</h1>\n      <table>\n        {users.map(u => (\n          <tr key={u.id}><td>{u.name}</td><td>{u.email}</td></tr>\n        ))}\n      </table>\n    </div>\n  );\n}`,
-    };
-
-    let fileSystem = {};
-    let openTabs = ['src/pages/Login.tsx'];
-    let activeTab = 'src/pages/Login.tsx';
-    let isRunning = false;
-    let demoStep = 0;
-    let demoTimer = null;
-
-    function loadFS() {
-      try { const s = localStorage.getItem('gd_files'); if (s) return JSON.parse(s); } catch {}
-      return JSON.parse(JSON.stringify(DEFAULT_FILES));
-    }
-    function saveFS(fs) { localStorage.setItem('gd_files', JSON.stringify(fs)); }
-    fileSystem = loadFS();
-
-    function getTree() {
-      const root = {};
-      Object.keys(fileSystem).sort().forEach(path => {
-        const parts = path.split('/');
-        let node = root;
-        parts.forEach((p, i) => {
-          if (i === parts.length - 1) node[p] = null;
-          else { if (!node[p]) node[p] = {}; node = node[p]; }
-        });
-      });
-      return root;
-    }
-
-    function renderTree() {
-      const tree = getTree();
-      let html = '';
-      function walk(node, depth) {
-        Object.keys(node).sort().forEach(name => {
-          const isFolder = node[name] !== null;
-          const path = buildPath(name, depth);
-          const isActive = path === activeTab;
-          const cls = ['file-item', 'indent-' + depth, isActive ? 'active' : ''].join(' ');
-          html += '<div class="' + cls + '" onclick="openFile(\'' + path + '\')" title="' + path + '">';
-          html += '<span class="folder-arrow" style="visibility:' + (isFolder ? 'visible' : 'hidden') + '">' + (isFolder ? '▶' : '📄') + '</span>';
-          html += '<span>' + name + '</span>';
-          html += '<span class="file-del" onclick="event.stopPropagation(); deleteFile(\'' + path + '\')">×</span>';
-          html += '</div>';
-          if (isFolder) walk(node[name], depth + 1);
-        });
-      }
-      walk(tree, 0);
-      document.getElementById('fileTree').innerHTML = html;
-    }
-
-    function buildPath(name, depth) {
-      // Simplified - constructs path from the tree walk context
-      // Since our tree is flat-keyed, we can find by checking which keys end with this name
-      const matches = Object.keys(fileSystem).filter(k => k.endsWith('/' + name) || k === name);
-      return matches[0] || name;
-    }
-
-    function openFile(path) {
-      if (!fileSystem[path]) return;
-      activeTab = path;
-      if (!openTabs.includes(path)) openTabs.push(path);
-      renderTabs();
-      renderTree();
-      renderEditor();
-    }
-
-    function renderTabs() {
-      const el = document.getElementById('editorTabs');
-      if (!openTabs.length) { el.innerHTML = ''; return; }
-      el.innerHTML = openTabs.map(p =>
-        '<div class="tab' + (p === activeTab ? ' active' : '') + '" onclick="openFile(\'' + p + '\')">' +
-        p.split('/').pop() +
-        '<span class="close" onclick="event.stopPropagation(); closeTab(\'' + p + '\')">×</span></div>'
-      ).join('');
-    }
-
-    function closeTab(path) {
-      openTabs = openTabs.filter(p => p !== path);
-      if (activeTab === path) activeTab = openTabs.length ? openTabs[openTabs.length - 1] : null;
-      renderTabs();
-      renderEditor();
-      renderTree();
-    }
-
-    function renderEditor() {
-      const container = document.getElementById('editorContainer');
-      const welcome = document.getElementById('welcomeScreen');
-      if (!activeTab || !fileSystem[activeTab]) {
-        welcome.style.display = 'flex';
-        container.innerHTML = ''; container.appendChild(welcome);
-        document.getElementById('currentFile').textContent = '—';
-        return;
-      }
-      welcome.style.display = 'none';
-      const content = fileSystem[activeTab];
-      document.getElementById('currentFile').textContent = activeTab;
-      container.innerHTML = '<textarea id="codeEditor" spellcheck="false">' + esc(content) + '</textarea>';
-      document.getElementById('codeEditor').addEventListener('input', function() {
-        fileSystem[activeTab] = this.value;
-        saveFS(fileSystem);
-      });
-    }
-
-    function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
-    function createFile() {
-      const name = prompt('File path (e.g. src/utils/helpers.ts):');
-      if (!name || fileSystem[name]) return;
-      fileSystem[name] = '// ' + name + '\n';
-      saveFS(fileSystem);
-      openFile(name);
-      term('Created: ' + name, 'ok');
-    }
-
-    function deleteFile(path) {
-      if (!confirm('Delete ' + path + '?')) return;
-      delete fileSystem[path];
-      saveFS(fileSystem);
-      if (activeTab === path) {
-        openTabs = openTabs.filter(p => p !== path);
-        activeTab = openTabs.length ? openTabs[openTabs.length - 1] : null;
-      }
-      renderTree(); renderTabs(); renderEditor();
-      term('Deleted: ' + path);
-    }
-
-    function term(text, type) {
-      const el = document.getElementById('terminalOutput');
-      const d = document.createElement('div');
-      d.className = 'terminal-line ' + (type === 'cmd' ? 'cmd' : type === 'err' ? 'err' : type === 'ok' ? 'ok' : '');
-      d.textContent = text;
-      el.appendChild(d);
-      el.scrollTop = el.scrollHeight;
-    }
-
-    const DEMO_STEPS = [
-      'Scanning project...', 'Analyzing dependencies...', 'Reading source files...',
-      'Generating code...', 'Creating components...', 'Installing packages...',
-      'Building project...', 'Running tests...', 'Task complete!',
-    ];
-
-    function renderTimeline(idx) {
-      const el = document.getElementById('timelineList');
-      el.innerHTML = DEMO_STEPS.map((s, i) =>
-        '<div class="tl-step"><div class="tl-icon ' + (i === idx ? 'active' : i < idx ? 'done' : '') + '">' +
-        (i === idx ? '<span class="spin-dot"></span>' : ['🔍','📂','📖','✏️','📄','📦','🔨','🧪','🎉'][i]) + '</div>' +
-        '<div class="tl-text' + (i === idx ? ' active' : '') + '">' + s + '</div></div>'
-      ).join('');
-    }
-
-    function runTask(task) {
-      if (isRunning) { stopTask(); return; }
-      isRunning = true;
-      const input = document.getElementById('taskInput');
-      const btn = document.getElementById('actionBtn');
-      document.getElementById('agentStatus').textContent = 'Running';
-      btn.textContent = 'Stop'; btn.className = 'stop';
-      term('$ ' + task, 'cmd');
-
-      if (task.toLowerCase().includes('login')) {
-        if (!fileSystem['src/components/LoginForm.tsx']) {
-          fileSystem['src/components/LoginForm.tsx'] = 'import { useState } from "react";\n\nexport function LoginForm() {\n  const [email, setEmail] = useState("");\n  const [password, setPassword] = useState("");\n  const handleSubmit = (e) => { e.preventDefault(); alert("Login: " + email); };\n  return (\n    <form onSubmit={handleSubmit}>\n      <input value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" />\n      <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" />\n      <button type="submit">Sign In</button>\n    </form>\n  );\n}';
-          saveFS(fileSystem); renderTree();
-        }
-      }
-      if (task.toLowerCase().includes('dashboard')) {
-        if (!fileSystem['src/components/Dashboard.tsx']) {
-          fileSystem['src/components/Dashboard.tsx'] = 'import { useState } from "react";\n\nexport function Dashboard() {\n  const [items] = useState([{id:1,name:"Alpha",status:"active"},{id:2,name:"Beta",status:"pending"}]);\n  return (\n    <div className="p-4">\n      <h1>Dashboard</h1>\n      {items.map(i => <div key={i.id}>{i.name} - {i.status}</div>)}\n    </div>\n  );\n}';
-          saveFS(fileSystem); renderTree();
-        }
-      }
-      if (task.toLowerCase().includes('api')) {
-        if (!fileSystem['src/lib/api.ts']) {
-          fileSystem['src/lib/api.ts'] = 'const API = "http://localhost:4000";\nexport async function get<T>(p: string): Promise<T> {\n  const r = await fetch(API + p);\n  if (!r.ok) throw new Error(r.statusText);\n  return r.json();\n}\nexport async function post<T>(p: string, d: unknown): Promise<T> {\n  const r = await fetch(API + p, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(d) });\n  if (!r.ok) throw new Error(r.statusText);\n  return r.json();\n}';
-          saveFS(fileSystem); renderTree();
-        }
-      }
-
-      let step = 0;
-      const total = 50;
-      function tick() {
-        step++;
-        const idx = Math.min(Math.floor(step / (total / DEMO_STEPS.length)), DEMO_STEPS.length - 1);
-        renderTimeline(idx);
-        const pct = Math.min(Math.round(step / total * 100), 99);
-        document.getElementById('progressFill').style.width = pct + '%';
-        document.getElementById('stepCount').textContent = (idx + 1) + '/' + DEMO_STEPS.length + ' steps';
-        document.getElementById('statusProgress').textContent = pct;
-
-        if (step % 8 === 0) {
-          const msgs = ['Checking syntax...', 'Optimizing imports...', 'Generating types...', 'Running linter...'];
-          term(msgs[Math.floor(step / 8) % msgs.length]);
-        }
-
-        if (step >= total) {
-          renderTimeline(DEMO_STEPS.length - 1);
-          document.getElementById('progressFill').style.width = '100%';
-          document.getElementById('statusProgress').textContent = '100';
-          document.getElementById('agentStatus').textContent = 'Completed';
-          document.getElementById('stepCount').textContent = DEMO_STEPS.length + '/' + DEMO_STEPS.length + ' steps';
-          term('Task completed!');
-          stopTask();
-          return;
-        }
-        demoTimer = setTimeout(tick, 200);
-      }
-      tick();
-    }
-
-    function stopTask() {
-      isRunning = false;
-      if (demoTimer) { clearTimeout(demoTimer); demoTimer = null; }
-      document.getElementById('agentStatus').textContent = 'Idle';
-      document.getElementById('actionBtn').textContent = 'Run';
-      document.getElementById('actionBtn').className = '';
-    }
-
-    function runExample(task) {
-      document.getElementById('taskInput').value = task;
-      runTask(task);
-    }
-
-    document.getElementById('newFileBtn').onclick = createFile;
-    document.getElementById('actionBtn').onclick = function() {
-      const t = document.getElementById('taskInput').value.trim();
-      if (isRunning) { stopTask(); return; }
-      if (!t) { document.getElementById('taskInput').focus(); return; }
-      runTask(t);
-    };
-    document.getElementById('taskInput').onkeydown = function(e) {
-      if (e.key === 'Enter') { e.preventDefault(); document.getElementById('actionBtn').click(); }
-    };
-    document.getElementById('actFiles').onclick = function() {
-      document.querySelectorAll('.activity button').forEach(b => b.classList.remove('active'));
-      this.classList.add('active');
-      document.getElementById('sidebarTitle').textContent = 'Explorer';
-      document.getElementById('newFileBtn').style.display = '';
-      renderTree();
-    };
-    document.getElementById('actTimeline').onclick = function() {
-      document.querySelectorAll('.activity button').forEach(b => b.classList.remove('active'));
-      this.classList.add('active');
-      document.getElementById('sidebarTitle').textContent = 'Agent Timeline';
-      document.getElementById('newFileBtn').style.display = 'none';
-      renderTimeline(-1);
-    };
-
-    renderTree();
-    renderTabs();
-    if (activeTab) renderEditor();
-    term('Ghost Developer ready. Create or edit files, then type a task.', 'info');
-  </script>
 </body>
 </html>
