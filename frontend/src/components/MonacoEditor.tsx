@@ -115,17 +115,23 @@ const EXT_MAP: Record<string, string> = {
   html: "html",
 };
 
+function normalizePath(p: string): string {
+  return p.startsWith("/") ? p : `/${p}`;
+}
+
 export function MonacoEditor({ filePath }: { filePath: string }) {
   const { state } = useAgent();
   const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
-  const [content, setContent] = useState(FILE_CONTENTS[filePath] || "// Select a file");
+  const np = normalizePath(filePath);
+  const [content, setContent] = useState(FILE_CONTENTS[np] || "// Select a file");
 
   useEffect(() => {
-    if (state.fileContent && state.currentFile === filePath) {
-      setContent(state.fileContent);
-      // Animate: highlight lines
+    const aiContent = state.fileContent;
+    const aiPath = state.currentFile;
+    if (aiContent && (normalizePath(aiPath) === np || aiPath === filePath)) {
+      setContent(aiContent);
       if (editorRef.current) {
-        const lineCount = state.fileContent.split("\n").length;
+        const lineCount = aiContent.split("\n").length;
         editorRef.current.revealLine(lineCount);
         editorRef.current.setSelection({
           startLineNumber: Math.max(1, lineCount - 3),
@@ -135,13 +141,13 @@ export function MonacoEditor({ filePath }: { filePath: string }) {
         });
       }
     }
-  }, [state.fileContent, state.currentFile, filePath]);
+  }, [state.fileContent, state.currentFile, filePath, np]);
 
   useEffect(() => {
-    if (FILE_CONTENTS[filePath]) {
-      setContent(FILE_CONTENTS[filePath]);
+    if (FILE_CONTENTS[np]) {
+      setContent(FILE_CONTENTS[np]);
     }
-  }, [filePath]);
+  }, [np]);
 
   const ext = filePath.split(".").pop() || "ts";
   const lang = EXT_MAP[ext] || "plaintext";
